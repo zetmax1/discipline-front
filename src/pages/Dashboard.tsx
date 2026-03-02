@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { Calendar, CheckCircle2, Brain, Clock, Flame, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTasks } from '@/hooks/use-tasks';
 import { useVocabulary } from '@/hooks/use-vocabulary';
-import { MICRO_MESSAGES } from '@/lib/static-data';
-import { CATEGORY_LABELS, CATEGORY_COLORS, type TaskCategory } from '@/lib/types';
+import { useQuote } from '@/hooks/use-quote';
+import { CATEGORY_LABELS } from '@/lib/types';
 import { toast } from 'sonner';
 import { COMPLETION_MESSAGES } from '@/lib/static-data';
 
@@ -21,14 +21,7 @@ function getTimeDiffHours(start: string, end: string) {
 export default function Dashboard() {
   const { todayTasks, updateTask } = useTasks();
   const { todayWords, toggleLearned } = useVocabulary();
-  const [messageIndex, setMessageIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMessageIndex(i => (i + 1) % MICRO_MESSAGES.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
+  const { quote, author } = useQuote();
 
   const stats = useMemo(() => {
     const total = todayTasks.length;
@@ -55,7 +48,7 @@ export default function Dashboard() {
     { label: 'Deep Work', value: `${stats.deepWorkHours}h`, icon: Flame },
   ];
 
-  const handleComplete = (id: string) => {
+  const handleComplete = (id: string | number) => {
     updateTask(id, { status: 'completed' });
     toast(COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)]);
   };
@@ -64,7 +57,9 @@ export default function Dashboard() {
     <div className="space-y-6 max-w-6xl">
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1 italic">{MICRO_MESSAGES[messageIndex]}</p>
+        <p className="text-sm text-muted-foreground mt-1 italic">
+          {quote}{author ? ` — ${author}` : ''}
+        </p>
       </div>
 
       {/* Summary Cards */}

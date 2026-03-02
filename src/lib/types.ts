@@ -15,12 +15,13 @@ export interface Task {
 }
 
 export interface VocabularyWord {
-  id: string;
+  id: string | number;
   word: string;
   language: 'russian' | 'english';
   definition: string;
   example: string;
   synonym?: string;
+  partOfSpeech?: string;
   learned: boolean;
   saved: boolean;
   date: string; // YYYY-MM-DD

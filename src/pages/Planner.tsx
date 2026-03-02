@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 import { useTasks } from '@/hooks/use-tasks';
 import { CATEGORY_LABELS, CATEGORY_COLORS, type TaskCategory } from '@/lib/types';
@@ -12,6 +11,26 @@ import { toast } from 'sonner';
 import { COMPLETION_MESSAGES } from '@/lib/static-data';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
+
+// Generate time options in 24h format with 15-minute intervals
+function generateTimeOptions() {
+  const options: string[] = [];
+  for (let h = 6; h <= 23; h++) {
+    for (let m = 0; m < 60; m += 15) {
+      options.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  }
+  options.push('24:00');
+  return options;
+}
+
+const TIME_OPTIONS = generateTimeOptions();
+
+// Parse "HH:MM" to total minutes for comparison
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
 
 export default function Planner() {
   const { todayTasks, addTask, updateTask, deleteTask } = useTasks();
@@ -23,19 +42,40 @@ export default function Planner() {
   const [endTime, setEndTime] = useState('10:00');
   const [energy, setEnergy] = useState(3);
 
+  const isTimeValid = timeToMinutes(endTime) > timeToMinutes(startTime);
+
   const handleAdd = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast.error('Please enter a task name.');
+      return;
+    }
+    if (!isTimeValid) {
+      toast.error('End time must be after start time.');
+      return;
+    }
     addTask({ name: name.trim(), category, startTime, endTime, energy, date: today });
     setName('');
     toast('Block added.');
   };
 
-  const handleComplete = (id: string) => {
+  // Auto-adjust end time when start time changes
+  const handleStartChange = (value: string) => {
+    setStartTime(value);
+    if (timeToMinutes(value) >= timeToMinutes(endTime)) {
+      // Set end to start + 1 hour, capped at 24:00
+      const newEnd = Math.min(timeToMinutes(value) + 60, 24 * 60);
+      const h = Math.floor(newEnd / 60);
+      const m = newEnd % 60;
+      setEndTime(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  };
+
+  const handleComplete = (id: string | number) => {
     updateTask(id, { status: 'completed' });
     toast(COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)]);
   };
 
-  const handleSkip = (id: string) => {
+  const handleSkip = (id: string | number) => {
     updateTask(id, { status: 'skipped' });
     toast('Block skipped.');
   };
@@ -68,11 +108,30 @@ export default function Planner() {
             </div>
             <div>
               <Label className="text-xs">Start</Label>
-              <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+              <Select value={startTime} onValueChange={handleStartChange}>
+                <SelectTrigger className="font-mono text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {TIME_OPTIONS.filter(t => t !== '24:00').map(t => (
+                    <SelectItem key={`s-${t}`} value={t} className="font-mono">{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label className="text-xs">End</Label>
-              <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+              <Select value={endTime} onValueChange={setEndTime}>
+                <SelectTrigger className={`font-mono text-sm ${!isTimeValid ? 'border-destructive text-destructive' : ''}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {TIME_OPTIONS.filter(t => timeToMinutes(t) > timeToMinutes(startTime)).map(t => (
+                    <SelectItem key={`e-${t}`} value={t} className="font-mono">{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!isTimeValid && (
+                <p className="text-[10px] text-destructive mt-0.5">Must be after start</p>
+              )}
             </div>
             <div>
               <Label className="text-xs">Energy ({energy})</Label>
@@ -91,7 +150,7 @@ export default function Planner() {
               </div>
             </div>
           </div>
-          <Button onClick={handleAdd} className="mt-3" size="sm" disabled={!name.trim()}>
+          <Button onClick={handleAdd} className="mt-3" size="sm" disabled={!name.trim() || !isTimeValid}>
             <Plus className="h-3.5 w-3.5 mr-1" /> Add Block
           </Button>
         </CardContent>
