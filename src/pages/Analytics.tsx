@@ -18,10 +18,10 @@ export default function Analytics() {
         <h1 className="text-2xl font-bold">Analytics</h1>
         <div className="flex gap-1 border rounded-md p-0.5">
           <Button size="sm" variant={range === 'week' ? 'default' : 'ghost'} className="h-7 text-xs" onClick={() => setRange('week')}>
-            This Week
+            This week
           </Button>
           <Button size="sm" variant={range === 'month' ? 'default' : 'ghost'} className="h-7 text-xs" onClick={() => setRange('month')}>
-            This Month
+            This month
           </Button>
         </div>
       </div>
@@ -44,7 +44,7 @@ export default function Analytics() {
         {/* Completion Trend */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Completion Rate</CardTitle>
+            <CardTitle className="text-sm font-semibold">Completion rate</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -80,7 +80,7 @@ export default function Analytics() {
         {/* Productivity by Day */}
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Productivity by Weekday</CardTitle>
+            <CardTitle className="text-sm font-semibold">Productivity by weekday</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>

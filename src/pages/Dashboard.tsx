@@ -80,7 +80,7 @@ export default function Dashboard() {
       {/* Timeline */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Today's Schedule</CardTitle>
+          <CardTitle className="text-base font-semibold">Today's schedule</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -137,7 +137,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary" />
-              <CardTitle className="text-base font-semibold">Today's Words</CardTitle>
+              <CardTitle className="text-base font-semibold">Today's words</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
