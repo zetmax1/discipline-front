@@ -28,6 +28,20 @@ export function removeUser(): void {
   localStorage.removeItem('auth_user');
 }
 
+// --- Demo mode ---
+
+export function isDemoMode(): boolean {
+  return localStorage.getItem('demo_mode') === 'true';
+}
+
+export function setDemoMode(): void {
+  localStorage.setItem('demo_mode', 'true');
+}
+
+export function removeDemoMode(): void {
+  localStorage.removeItem('demo_mode');
+}
+
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
@@ -129,5 +143,6 @@ export async function registerApi(name: string, email: string, password: string)
 export function logout() {
   removeToken();
   removeUser();
+  removeDemoMode();
   window.location.href = '/login';
 }

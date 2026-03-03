@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
-import { Brain, ArrowRight, Loader2 } from 'lucide-react';
+import { Brain, ArrowRight, Loader2, Play } from 'lucide-react';
+import { setDemoMode } from '@/lib/api';
 
 export default function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -34,6 +35,12 @@ export default function Login() {
     } catch {
       toast.error(error || 'Authentication failed');
     }
+  };
+
+  const handleDemo = () => {
+    setDemoMode();
+    toast('Welcome! You are using the demo version. Data is saved locally.');
+    navigate('/');
   };
 
   return (
@@ -153,7 +160,7 @@ export default function Login() {
               </button>
             </div>
 
-            {/* Divider + skip */}
+            {/* Divider + demo */}
             <div className="relative mt-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -164,12 +171,16 @@ export default function Login() {
             </div>
 
             <Button
-              variant="ghost"
-              className="w-full mt-4 text-sm text-muted-foreground hover:text-foreground"
-              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full mt-4 text-sm text-muted-foreground hover:text-foreground border-dashed"
+              onClick={handleDemo}
             >
-              Continue without account
+              <Play className="h-3.5 w-3.5 mr-2" />
+              Try Demo Version
             </Button>
+            <p className="text-[11px] text-muted-foreground text-center mt-2">
+              No account needed · Data saved locally
+            </p>
           </CardContent>
         </Card>
 

@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { isAuthenticated } from '@/lib/api';
+import { isAuthenticated, isDemoMode } from '@/lib/api';
 
 interface Props {
   children: React.ReactNode;
@@ -7,10 +7,11 @@ interface Props {
 
 /**
  * Wraps routes that require authentication.
- * Redirects to /login if the user is not logged in.
+ * Allows access if the user is logged in OR in demo mode.
+ * Redirects to /login otherwise.
  */
 export function ProtectedRoute({ children }: Props) {
-  if (!isAuthenticated()) {
+  if (!isAuthenticated() && !isDemoMode()) {
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;

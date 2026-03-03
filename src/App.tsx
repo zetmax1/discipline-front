@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { isAuthenticated } from "./lib/api";
+import { isAuthenticated, isDemoMode } from "./lib/api";
 import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
 import Analytics from "./pages/Analytics";
@@ -37,12 +37,12 @@ const App = () => (
         v7_relativeSplatPath: true
       }}>
         <Routes>
-          {/* Login — no sidebar, redirect to dashboard if already logged in */}
+          {/* Login — redirect to dashboard if already logged in or in demo mode */}
           <Route path="/login" element={
-            isAuthenticated() ? <Navigate to="/" replace /> : <Login />
+            (isAuthenticated() || isDemoMode()) ? <Navigate to="/" replace /> : <Login />
           } />
 
-          {/* App pages — with sidebar, protected by auth */}
+          {/* App pages — with sidebar, protected by auth or demo mode */}
           <Route element={<LayoutWrapper />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/planner" element={<Planner />} />
