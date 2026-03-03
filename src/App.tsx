@@ -2,8 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { isAuthenticated } from "./lib/api";
 import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
 import Analytics from "./pages/Analytics";
@@ -14,12 +16,14 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Wrapper that renders children inside AppLayout
+// Wrapper that renders children inside AppLayout with auth protection
 function LayoutWrapper() {
   return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
+    <ProtectedRoute>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    </ProtectedRoute>
   );
 }
 
@@ -33,10 +37,12 @@ const App = () => (
         v7_relativeSplatPath: true
       }}>
         <Routes>
-          {/* Login — no sidebar */}
-          <Route path="/login" element={<Login />} />
+          {/* Login — no sidebar, redirect to dashboard if already logged in */}
+          <Route path="/login" element={
+            isAuthenticated() ? <Navigate to="/" replace /> : <Login />
+          } />
 
-          {/* App pages — with sidebar */}
+          {/* App pages — with sidebar, protected by auth */}
           <Route element={<LayoutWrapper />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/planner" element={<Planner />} />
