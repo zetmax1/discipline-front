@@ -116,7 +116,6 @@ export default function Login() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  minLength={6}
                   className="h-11"
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />

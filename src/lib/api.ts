@@ -146,3 +146,13 @@ export function logout() {
   removeDemoMode();
   window.location.href = '/login';
 }
+
+// --- Analytics API ---
+
+export async function fetchAnalytics(range: 'week' | 'month') {
+  return apiGet<any>(`/analytics?range=${range}`);
+}
+
+export async function fetchFocusPatterns(days: number = 30) {
+  return apiGet<any>(`/analytics/focus-patterns?days=${days}`);
+}

@@ -119,7 +119,6 @@ export function ProfileModal({ open, onClose }: Props) {
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   placeholder="Leave empty to keep current"
-                  minLength={6}
                   className="pr-10"
                 />
                 <button
