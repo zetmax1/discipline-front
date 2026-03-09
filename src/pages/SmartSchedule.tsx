@@ -8,60 +8,11 @@ import { Sparkles, Plus, Trash2 } from 'lucide-react';
 import { Commitment, WeeklyGoals, ScheduleBlock } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
 
+import { apiPost } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, CalendarCheck } from 'lucide-react';
+
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-function generateSchedule(commitments: Commitment[], goals: WeeklyGoals): { blocks: ScheduleBlock[], reasoning: string[] } {
-  const blocks: ScheduleBlock[] = [];
-  const reasoning: string[] = [];
-  const dailyDeepWork = goals.deepWorkHours / 5;
-  const dailyStudy = goals.studyHours / 5;
-
-  DAYS.forEach((day, di) => {
-    const dayCommitments = commitments.filter(c => c.days.includes(day));
-    const occupied = dayCommitments.map(c => ({ start: parseInt(c.startTime), end: parseInt(c.endTime) }));
-
-    // Add fixed commitments
-    dayCommitments.forEach(c => {
-      blocks.push({ id: `${day}-${c.id}`, name: c.name, category: 'fixed', startTime: c.startTime, endTime: c.endTime, day });
-    });
-
-    const isOccupied = (hour: number) => occupied.some(o => hour >= o.start && hour < o.end);
-
-    // Place deep work in morning (7-12)
-    let deepPlaced = 0;
-    for (let h = 7; h <= 11 && deepPlaced < dailyDeepWork; h++) {
-      if (!isOccupied(h)) {
-        blocks.push({ id: `${day}-dw-${h}`, name: 'Deep Work', category: 'deep-work', startTime: `${String(h).padStart(2, '0')}:00`, endTime: `${String(h + 1).padStart(2, '0')}:00`, day });
-        occupied.push({ start: h, end: h + 1 });
-        deepPlaced++;
-      }
-    }
-    if (deepPlaced > 0) reasoning.push(`${day}: Deep work placed at morning — focus is highest.`);
-
-    // Place study in afternoon (13-17)
-    let studyPlaced = 0;
-    for (let h = 13; h <= 16 && studyPlaced < dailyStudy; h++) {
-      if (!isOccupied(h)) {
-        blocks.push({ id: `${day}-st-${h}`, name: 'Study', category: 'study', startTime: `${String(h).padStart(2, '0')}:00`, endTime: `${String(h + 1).padStart(2, '0')}:00`, day });
-        occupied.push({ start: h, end: h + 1 });
-        studyPlaced++;
-      }
-    }
-
-    // Rest block
-    if (di < 5) {
-      for (let h = 19; h <= 20; h++) {
-        if (!isOccupied(h)) {
-          blocks.push({ id: `${day}-rest-${h}`, name: 'Rest', category: 'rest', startTime: `${String(h).padStart(2, '0')}:00`, endTime: `${String(h + 1).padStart(2, '0')}:00`, day });
-          break;
-        }
-      }
-    }
-  });
-
-  if (reasoning.length === 0) reasoning.push('Schedule generated based on your commitments and goals.');
-  return { blocks, reasoning };
-}
 
 export default function SmartSchedule() {
   const [commitments, setCommitments] = useState<Commitment[]>([
@@ -76,10 +27,67 @@ export default function SmartSchedule() {
   const [newEnd, setNewEnd] = useState('10:00');
   const [selectedDay, setSelectedDay] = useState('Monday');
 
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
   const addCommitment = () => {
     if (!newName.trim()) return;
     setCommitments(prev => [...prev, { id: crypto.randomUUID(), name: newName, startTime: newStart, endTime: newEnd, days: [selectedDay] }]);
     setNewName('');
+  };
+
+  const handleGenerate = async () => {
+    try {
+      setIsGenerating(true);
+      const res = await apiPost<any>('/analytics/smart-schedule', { commitments, goals });
+      setResult(res);
+      toast({ title: 'Schedule Generated', description: 'Review the optimized weekly plan below.' });
+    } catch (error) {
+      toast({ title: 'Generation Failed', description: 'Could not connect to the smart scheduling service.', variant: 'destructive' });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!result) return;
+    try {
+      setIsSaving(true);
+      
+      // Calculate Dates for the coming week starting tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const tasksToCreate = result.blocks.filter(b => b.category !== 'fixed').map(block => {
+          // Determine offsets from Monday mapping to actual dates could be complex, 
+          // but for now we'll naively assign dates or just focus on generating them as valid Task Requests 
+          // Let's map days of week to upcoming valid calendar dates
+          const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(block.day);
+          const taskDate = new Date(tomorrow);
+          // Find next matching day of week
+          while (taskDate.getDay() !== dayIndex) {
+              taskDate.setDate(taskDate.getDate() + 1);
+          }
+          
+          return {
+              name: block.name,
+              category: block.category,
+              startTime: block.startTime,
+              endTime: block.endTime,
+              energy: ['deep-work', 'study'].includes(block.category) ? 5 : 3,
+              date: taskDate.toISOString().split('T')[0]
+          };
+      });
+
+      await apiPost('/tasks/bulk', { tasks: tasksToCreate });
+      toast({ title: 'Success', description: 'Weekly plan saved to your Daily Planner!' });
+      setResult(null); // Clear confirmation phase
+    } catch (error) {
+      toast({ title: 'Save Failed', description: 'Could not save tasks.', variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -129,8 +137,9 @@ export default function SmartSchedule() {
               <Label className="text-xs">Rest</Label>
               <Input type="number" value={goals.restHours} onChange={e => setGoals(g => ({ ...g, restHours: +e.target.value }))} />
             </div>
-            <Button onClick={() => setResult(generateSchedule(commitments, goals))} className="w-full">
-              <Sparkles className="h-4 w-4 mr-2" /> Generate Schedule
+            <Button onClick={handleGenerate} className="w-full" disabled={isGenerating}>
+              {isGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />} 
+              {isGenerating ? 'Analyzing Patterns...' : 'Generate Schedule'}
             </Button>
           </CardContent>
         </Card>
@@ -138,7 +147,14 @@ export default function SmartSchedule() {
 
       {/* Result */}
       {result && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Recommended Weekly Plan</h2>
+            <Button onClick={handleSaveSchedule} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-white">
+              {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CalendarCheck className="h-4 w-4 mr-2" />}
+              Save Weekly Plan
+            </Button>
+          </div>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">Reasoning</CardTitle>
