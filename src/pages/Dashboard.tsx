@@ -11,6 +11,7 @@ import { useQuote } from '@/hooks/use-quote';
 import { CATEGORY_LABELS } from '@/lib/types';
 import { toast } from 'sonner';
 import { COMPLETION_MESSAGES } from '@/lib/static-data';
+import { isStoredWord } from '@/lib/vocabulary';
 
 function getTimeDiffHours(start: string, end: string) {
   const [sh, sm] = start.split(':').map(Number);
@@ -144,22 +145,24 @@ export default function Dashboard() {
             {todayWords.length === 0 && <p className="text-sm text-muted-foreground">No words for today.</p>}
             <div className="space-y-3">
               {todayWords.map(word => (
-                <div key={word.id} className="p-3 rounded-md border space-y-1">
+                <div key={`${word.language}-${word.id}`} className="p-3 rounded-md border space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm">{word.word}</span>
                     <Badge variant="outline" className="text-[10px]">{word.language === 'russian' ? 'RU' : 'EN'}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{word.definition}</p>
-                  <div className="flex justify-end">
-                    <Button
-                      size="sm"
-                      variant={word.learned ? 'secondary' : 'outline'}
-                      className="text-xs h-7"
-                      onClick={() => toggleLearned(word.id)}
-                    >
-                      {word.learned ? 'Learned' : 'Mark learned'}
-                    </Button>
-                  </div>
+                  {isStoredWord(word) && (
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        variant={word.learned ? 'secondary' : 'outline'}
+                        className="text-xs h-7"
+                        onClick={() => toggleLearned(word.id)}
+                      >
+                        {word.learned ? 'Learned' : 'Mark learned'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
