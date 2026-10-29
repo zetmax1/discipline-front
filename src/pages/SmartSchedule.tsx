@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Plus, Trash2 } from 'lucide-react';
-import { Commitment, WeeklyGoals, ScheduleBlock } from '@/lib/types';
+import { Commitment, WeeklyGoals } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
 
-import { apiPost, isDemoOnly } from '@/lib/api';
+import { apiPost, generateSmartSchedule, isDemoOnly } from '@/lib/api';
+import type { SmartScheduleResponse } from '@/contracts/analytics';
+import { shortfallMessages } from '@/lib/smart-schedule';
 import { DemoUnavailable } from '@/components/DemoUnavailable';
 import { weeklyPlanDate } from '@/lib/dates';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +30,7 @@ function SmartScheduleContent() {
     { id: '3', name: 'Gym', startTime: '17:00', endTime: '18:30', days: ['Monday', 'Wednesday', 'Friday'] },
   ]);
   const [goals, setGoals] = useState<WeeklyGoals>({ deepWorkHours: 15, studyHours: 10, restHours: 7 });
-  const [result, setResult] = useState<{ blocks: ScheduleBlock[], reasoning: string[] } | null>(null);
+  const [result, setResult] = useState<SmartScheduleResponse | null>(null);
   const [newName, setNewName] = useState('');
   const [newStart, setNewStart] = useState('09:00');
   const [newEnd, setNewEnd] = useState('10:00');
@@ -47,11 +49,13 @@ function SmartScheduleContent() {
   const handleGenerate = async () => {
     try {
       setIsGenerating(true);
-      const res = await apiPost<any>('/analytics/smart-schedule', { commitments, goals });
+      const res = await generateSmartSchedule({ commitments, goals });
       setResult(res);
       toast({ title: 'Schedule Generated', description: 'Review the optimized weekly plan below.' });
     } catch (error) {
-      toast({ title: 'Generation Failed', description: 'Could not connect to the smart scheduling service.', variant: 'destructive' });
+      // 422s carry the generator's field-level message (e.g. a bad time or goal)
+      const description = error instanceof Error && error.message ? error.message : 'Could not reach the smart scheduling service.';
+      toast({ title: 'Generation Failed', description, variant: 'destructive' });
     } finally {
       setIsGenerating(false);
     }
@@ -160,6 +164,13 @@ function SmartScheduleContent() {
                   <li key={i} className="text-sm text-muted-foreground italic">"{r}"</li>
                 ))}
               </ul>
+              {shortfallMessages(result.shortfall_minutes).length > 0 && (
+                <ul className="mt-3 space-y-1">
+                  {shortfallMessages(result.shortfall_minutes).map(m => (
+                    <li key={m} className="text-sm text-destructive">{m}</li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
 

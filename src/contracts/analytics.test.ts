@@ -14,7 +14,7 @@ describe('analytics contract file', () => {
   });
 
   it('covers every analytics response the frontend reads', () => {
-    expect(Object.keys(exportContract()).sort()).toEqual(['focus_patterns', 'period_report', 'today']);
+    expect(Object.keys(exportContract()).sort()).toEqual(['focus_patterns', 'period_report', 'smart_schedule', 'today']);
   });
 });
 

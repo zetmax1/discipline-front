@@ -636,5 +636,77 @@
       "charts"
     ],
     "additionalProperties": {}
+  },
+  "smart_schedule": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "blocks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            },
+            "startTime": {
+              "type": "string"
+            },
+            "endTime": {
+              "type": "string"
+            },
+            "day": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "category",
+            "startTime",
+            "endTime",
+            "day"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "reasoning": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "placed_minutes": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "shortfall_minutes": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "type": "number"
+        }
+      }
+    },
+    "required": [
+      "blocks",
+      "reasoning",
+      "placed_minutes",
+      "shortfall_minutes"
+    ],
+    "additionalProperties": {}
   }
 }

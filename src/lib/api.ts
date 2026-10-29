@@ -1,6 +1,6 @@
 // API client for the Discipline backend
 import type { z } from 'zod/v4';
-import { FocusPatternsResponse, PeriodReport, TodayResponse } from '@/contracts/analytics';
+import { FocusPatternsResponse, PeriodReport, SmartScheduleResponse, TodayResponse } from '@/contracts/analytics';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // --- Token management ---
@@ -222,6 +222,10 @@ function parseWith<S extends z.ZodType>(schema: S, what: string) {
 
 export async function fetchAnalytics(range: 'week' | 'month'): Promise<PeriodReport> {
   return apiGet<unknown>(`/analytics?range=${range}`).then(parseWith(PeriodReport, 'analytics'));
+}
+
+export async function generateSmartSchedule(body: unknown): Promise<SmartScheduleResponse> {
+  return apiPost<unknown>('/analytics/smart-schedule', body).then(parseWith(SmartScheduleResponse, 'smart schedule'));
 }
 
 export async function fetchToday(): Promise<TodayResponse> {

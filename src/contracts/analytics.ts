@@ -91,7 +91,24 @@ export const FocusPatternsResponse = z.looseObject({
   }),
 });
 
+export const ScheduleBlock = z.looseObject({
+  id: z.string(),
+  name: z.string(),
+  category: z.string(), // 'fixed' | 'deep-work' | 'study' | 'rest'
+  startTime: z.string(),
+  endTime: z.string(),
+  day: z.string(),
+});
+
+export const SmartScheduleResponse = z.looseObject({
+  blocks: z.array(ScheduleBlock),
+  reasoning: z.array(z.string()),
+  placed_minutes: z.record(z.string(), z.number()),
+  shortfall_minutes: z.record(z.string(), z.number()), // per category; > 0 = could not fit
+});
+
 export type DayMetrics = z.infer<typeof DayMetrics>;
+export type SmartScheduleResponse = z.infer<typeof SmartScheduleResponse>;
 export type TodayResponse = z.infer<typeof TodayResponse>;
 export type PeriodReport = z.infer<typeof PeriodReport>;
 export type FocusPatternsResponse = z.infer<typeof FocusPatternsResponse>;
@@ -104,5 +121,6 @@ export function exportContract() {
     today: z.toJSONSchema(TodayResponse),
     period_report: z.toJSONSchema(PeriodReport),
     focus_patterns: z.toJSONSchema(FocusPatternsResponse),
+    smart_schedule: z.toJSONSchema(SmartScheduleResponse),
   };
 }
