@@ -45,29 +45,35 @@ export function useTasks() {
     ? tasks
     : localTasks.filter(t => t.date === today);
 
+  // Task writes change the task list and today's server-side metrics.
+  const invalidateTaskViews = () => {
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+  };
+
   // Mutations
   const addMutation = useMutation({
     mutationFn: (task: Omit<Task, 'id' | 'status' | 'distractions'>) =>
       apiPost<TaskResponse>('/tasks', { ...task, date: task.date || today }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: invalidateTaskViews,
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, updates }: { id: number | string; updates: Partial<Task> }) =>
       apiPut<TaskResponse>(`/tasks/${id}`, updates),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: invalidateTaskViews,
     onError: showWriteError,
   });
 
   const distractionsMutation = useMutation({
     mutationFn: ({ id, delta }: { id: number | string; delta: 1 | -1 }) => adjustDistractionsApi(id, delta),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: invalidateTaskViews,
     onError: showWriteError,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) => apiDelete<{ message: string }>(`/tasks/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: invalidateTaskViews,
     onError: showWriteError,
   });
 
