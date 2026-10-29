@@ -56,6 +56,19 @@ export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
+/** Demo mode without an account: server-backed features are unavailable. */
+export function isDemoOnly(): boolean {
+  return isDemoMode() && !isAuthenticated();
+}
+
+/**
+ * After a 401, signed-in users go to /login. Demo users stay put: /login would
+ * redirect them straight back to "/", looping between the two.
+ */
+export function shouldRedirectToLogin(pathname: string): boolean {
+  return !isDemoMode() && pathname !== '/login';
+}
+
 // --- HTTP helpers ---
 
 async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
@@ -78,7 +91,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
   if (res.status === 401) {
     removeToken();
     removeUser();
-    if (window.location.pathname !== '/login') {
+    if (shouldRedirectToLogin(window.location.pathname)) {
       window.location.href = '/login';
     }
   }

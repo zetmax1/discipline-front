@@ -8,7 +8,8 @@ import { Sparkles, Plus, Trash2 } from 'lucide-react';
 import { Commitment, WeeklyGoals, ScheduleBlock } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
 
-import { apiPost } from '@/lib/api';
+import { apiPost, isDemoOnly } from '@/lib/api';
+import { DemoUnavailable } from '@/components/DemoUnavailable';
 import { weeklyPlanDate } from '@/lib/dates';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CalendarCheck } from 'lucide-react';
@@ -16,6 +17,11 @@ import { Loader2, CalendarCheck } from 'lucide-react';
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function SmartSchedule() {
+  if (isDemoOnly()) return <DemoUnavailable feature="Smart Schedule" />;
+  return <SmartScheduleContent />;
+}
+
+function SmartScheduleContent() {
   const [commitments, setCommitments] = useState<Commitment[]>([
     { id: '1', name: 'Sleep', startTime: '23:00', endTime: '07:00', days: DAYS },
     { id: '2', name: 'University', startTime: '10:00', endTime: '13:00', days: ['Monday', 'Wednesday', 'Friday'] },

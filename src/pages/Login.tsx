@@ -38,8 +38,9 @@ export default function Login() {
         toast('Account created successfully!');
       }
       navigate('/');
-    } catch {
-      toast.error(error || 'Authentication failed');
+    } catch (err) {
+      // Use the error just caught; the hook's `error` state is from the previous render.
+      toast.error(err instanceof Error && err.message ? err.message : 'Authentication failed');
     }
   };
 

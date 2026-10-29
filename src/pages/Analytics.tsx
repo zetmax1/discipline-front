@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, RefreshCcw, Loader2 } from 'lucide-react';
-import { fetchAnalytics, fetchFocusPatterns } from '@/lib/api';
+import { fetchAnalytics, fetchFocusPatterns, isDemoOnly } from '@/lib/api';
+import { DemoUnavailable } from '@/components/DemoUnavailable';
 import type { PatternsFound } from '@/contracts/analytics';
 import { formatHours, formatScore, patternsMessage } from '@/lib/analytics-format';
 import {
@@ -16,6 +17,11 @@ function ChartImage({ image, alt, className }: { image: string; alt: string; cla
 }
 
 export default function Analytics() {
+  if (isDemoOnly()) return <DemoUnavailable feature="Analytics" />;
+  return <AnalyticsContent />;
+}
+
+function AnalyticsContent() {
   const [range, setRange] = useState<'week' | 'month'>('week');
   const days = range === 'week' ? 7 : 30;
 
