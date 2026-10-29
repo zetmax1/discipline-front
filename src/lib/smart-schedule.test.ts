@@ -12,3 +12,15 @@ describe('shortfallMessages', () => {
     expect(shortfallMessages({ 'deep-work': 0, study: 0, rest: 0 })).toEqual([]);
   });
 });
+
+import { formatDays, WEEKDAYS } from './smart-schedule';
+
+describe('formatDays', () => {
+  it('summarises common sets and lists the rest in week order', () => {
+    expect(formatDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])).toBe('Every day');
+    expect(formatDays(WEEKDAYS)).toBe('Mon–Fri');
+    expect(formatDays(['Sunday', 'Saturday'])).toBe('Sat–Sun');
+    expect(formatDays(['Friday', 'Monday', 'Wednesday'])).toBe('Mon, Wed, Fri');
+    expect(formatDays([])).toBe('No days');
+  });
+});

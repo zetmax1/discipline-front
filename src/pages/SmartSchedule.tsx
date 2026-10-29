@@ -10,7 +10,7 @@ import { CATEGORY_COLORS } from '@/lib/types';
 
 import { apiPost, generateSmartSchedule, isDemoOnly } from '@/lib/api';
 import type { SmartScheduleResponse } from '@/contracts/analytics';
-import { shortfallMessages } from '@/lib/smart-schedule';
+import { ALL_DAYS, WEEKDAYS, formatDays, shortfallMessages, toggleDay } from '@/lib/smart-schedule';
 import { DemoUnavailable } from '@/components/DemoUnavailable';
 import { weeklyPlanDate } from '@/lib/dates';
 import { useToast } from '@/hooks/use-toast';
@@ -34,15 +34,15 @@ function SmartScheduleContent() {
   const [newName, setNewName] = useState('');
   const [newStart, setNewStart] = useState('09:00');
   const [newEnd, setNewEnd] = useState('10:00');
-  const [selectedDay, setSelectedDay] = useState('Monday');
+  const [newDays, setNewDays] = useState<string[]>(WEEKDAYS);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const addCommitment = () => {
-    if (!newName.trim()) return;
-    setCommitments(prev => [...prev, { id: crypto.randomUUID(), name: newName, startTime: newStart, endTime: newEnd, days: [selectedDay] }]);
+    if (!newName.trim() || newDays.length === 0) return;
+    setCommitments(prev => [...prev, { id: crypto.randomUUID(), name: newName, startTime: newStart, endTime: newEnd, days: newDays }]);
     setNewName('');
   };
 
@@ -103,6 +103,7 @@ function SmartScheduleContent() {
             {commitments.map(c => (
               <div key={c.id} className="flex items-center gap-2 text-sm border p-2 rounded">
                 <span className="flex-1 font-medium">{c.name}</span>
+                <span className="text-xs text-muted-foreground">{formatDays(c.days)}</span>
                 <span className="text-xs font-mono text-muted-foreground">{c.startTime}–{c.endTime}</span>
                 <button onClick={() => setCommitments(prev => prev.filter(x => x.id !== c.id))} className="p-1 hover:bg-secondary rounded">
                   <Trash2 className="h-3 w-3" />
@@ -113,7 +114,22 @@ function SmartScheduleContent() {
               <Input placeholder="Name" value={newName} onChange={e => setNewName(e.target.value)} className="text-sm" />
               <Input type="time" value={newStart} onChange={e => setNewStart(e.target.value)} className="text-sm" />
               <Input type="time" value={newEnd} onChange={e => setNewEnd(e.target.value)} className="text-sm" />
-              <Button size="sm" onClick={addCommitment} disabled={!newName.trim()}><Plus className="h-3 w-3" /></Button>
+              <Button size="sm" onClick={addCommitment} disabled={!newName.trim() || newDays.length === 0} aria-label="Add commitment"><Plus className="h-3 w-3" /></Button>
+            </div>
+            <div className="flex flex-wrap gap-1" role="group" aria-label="Commitment days">
+              {ALL_DAYS.map(day => (
+                <Button
+                  key={day}
+                  type="button"
+                  size="sm"
+                  variant={newDays.includes(day) ? 'default' : 'outline'}
+                  aria-pressed={newDays.includes(day)}
+                  className="h-7 px-2 text-xs"
+                  onClick={() => setNewDays(d => toggleDay(d, day))}
+                >
+                  {day.slice(0, 3)}
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
