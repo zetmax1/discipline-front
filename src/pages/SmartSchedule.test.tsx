@@ -84,3 +84,68 @@ describe('Commitment days', () => {
     expect(screen.getByRole('button', { name: 'Add commitment' })).toBeDisabled();
   });
 });
+
+describe('Save Weekly Plan', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 29, 12, 0)); // Thursday 2026-10-29 local
+  });
+  afterEach(() => vi.useRealTimers());
+
+  function mockGenerateAndSave() {
+    return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      if (String(input).endsWith('/tasks/plan')) return jsonResponse({ planId: 'p', count: 2, replaced: 0 });
+      return jsonResponse(response({
+        blocks: [
+          { id: 'f', name: 'Sleep', category: 'fixed', startTime: '23:00', endTime: '07:00', day: 'Monday' },
+          { id: 'a', name: 'Deep Work', category: 'deep-work', startTime: '09:00', endTime: '11:00', day: 'Monday' },
+          { id: 'b', name: 'Rest', category: 'rest', startTime: '19:00', endTime: '20:00', day: 'Sunday' },
+        ],
+      }));
+    });
+  }
+
+  it('saves to next Mon–Sun by default with dates inside that week', async () => {
+    const fetchMock = mockGenerateAndSave();
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /generate schedule/i }));
+    expect(await screen.findByLabelText('Target week')).toHaveValue('2026-11-02');
+    fireEvent.click(screen.getByRole('button', { name: /save weekly plan/i }));
+    await screen.findByText(/Saved 2 blocks/);
+
+    const [url, init] = fetchMock.mock.calls.find(([u]) => String(u).endsWith('/tasks/plan'))!;
+    expect(init?.method).toBe('PUT');
+    const body = JSON.parse(String(init?.body));
+    expect(body.weekStart).toBe('2026-11-02');
+    expect(body.tasks.map((t: { date: string; category: string }) => [t.date, t.category])).toEqual([
+      ['2026-11-02', 'deep-work'], ['2026-11-08', 'rest'],
+    ]);
+    expect(String(url)).toMatch(/\/tasks\/plan$/);
+  });
+
+  it('saves to the week the user picks', async () => {
+    const fetchMock = mockGenerateAndSave();
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /generate schedule/i }));
+    fireEvent.change(await screen.findByLabelText('Target week'), { target: { value: '2026-11-16' } });
+    fireEvent.click(screen.getByRole('button', { name: /save weekly plan/i }));
+    await screen.findByText(/Saved 2 blocks/);
+    const [, init] = fetchMock.mock.calls.find(([u]) => String(u).endsWith('/tasks/plan'))!;
+    const body = JSON.parse(String(init?.body));
+    expect(body.weekStart).toBe('2026-11-16');
+    expect(body.tasks[0].date).toBe('2026-11-16');
+  });
+});
+
+describe('Commitments and goals stay in this browser', () => {
+  it('survive a reload', () => {
+    const { unmount } = renderPage();
+    fireEvent.change(screen.getByPlaceholderText('Name'), { target: { value: 'Choir' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add commitment' }));
+    fireEvent.change(screen.getByLabelText('Study'), { target: { value: '12.5' } });
+    unmount();
+    renderPage();
+    expect(screen.getByText('Choir')).toBeInTheDocument();
+    expect(screen.getByLabelText('Study')).toHaveValue(12.5);
+  });
+});

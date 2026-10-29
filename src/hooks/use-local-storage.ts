@@ -13,7 +13,11 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
   const setValue = useCallback((value: T | ((prev: T) => T)) => {
     setStoredValue(prev => {
       const newValue = value instanceof Function ? value(prev) : value;
-      window.localStorage.setItem(key, JSON.stringify(newValue));
+      try {
+        window.localStorage.setItem(key, JSON.stringify(newValue));
+      } catch {
+        // Storage full or blocked (e.g. private mode): keep the value in memory only.
+      }
       return newValue;
     });
   }, [key]);
