@@ -137,6 +137,21 @@ describe('Save Weekly Plan', () => {
   });
 });
 
+describe('Save Weekly Plan conflict', () => {
+  it("shows the server's 409 message when the plan overlaps a manual block", async () => {
+    const msg = 'block overlaps another block on the same date';
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input).endsWith('/tasks/plan')) return jsonResponse({ error: msg }, 409);
+      return jsonResponse(response());
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /generate schedule/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /save weekly plan/i }));
+    expect(await screen.findByText('Save Failed')).toBeInTheDocument();
+    expect(screen.getByText(msg)).toBeInTheDocument();
+  });
+});
+
 describe('Commitments and goals stay in this browser', () => {
   it('survive a reload', () => {
     const { unmount } = renderPage();
