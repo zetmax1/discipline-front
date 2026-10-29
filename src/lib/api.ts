@@ -3,6 +3,14 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // --- Token management ---
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  timezone?: string; // IANA zone used by the server for "today"
+}
+
 export function getToken(): string | null {
   return localStorage.getItem('auth_token');
 }
@@ -15,12 +23,12 @@ export function removeToken(): void {
   localStorage.removeItem('auth_token');
 }
 
-export function getUser(): { id: number; name: string; email: string; role: string } | null {
+export function getUser(): AuthUser | null {
   const raw = localStorage.getItem('auth_user');
   return raw ? JSON.parse(raw) : null;
 }
 
-export function setUser(user: { id: number; name: string; email: string; role: string }): void {
+export function setUser(user: AuthUser): void {
   localStorage.setItem('auth_user', JSON.stringify(user));
 }
 
@@ -121,7 +129,7 @@ export async function apiDelete<T>(path: string): Promise<T> {
 // --- Auth API ---
 
 export async function loginApi(email: string, password: string) {
-  const data = await apiPost<{ token: string; user: { id: number; name: string; email: string; role: string } }>(
+  const data = await apiPost<{ token: string; user: AuthUser }>(
     '/auth/login',
     { email, password }
   );
@@ -131,7 +139,7 @@ export async function loginApi(email: string, password: string) {
 }
 
 export async function registerApi(name: string, email: string, password: string) {
-  const data = await apiPost<{ token: string; user: { id: number; name: string; email: string; role: string } }>(
+  const data = await apiPost<{ token: string; user: AuthUser }>(
     '/auth/register',
     { name, email, password }
   );
@@ -140,11 +148,44 @@ export async function registerApi(name: string, email: string, password: string)
   return data;
 }
 
-export function logout() {
+/**
+ * Revokes every token of this user on the server (best effort), then clears local auth.
+ * The server bumps the user's token version, so a copied token stops working too.
+ */
+export async function revokeSession(): Promise<void> {
+  const token = getToken();
+  if (token) {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      // Offline: the token still expires within 24h; clear it locally regardless.
+    }
+  }
   removeToken();
   removeUser();
   removeDemoMode();
-  window.location.href = '/login';
+}
+
+export function logout() {
+  void revokeSession().finally(() => {
+    window.location.href = '/login';
+  });
+}
+
+/** Stores the PUT /me result; a password change returns a replacement token. */
+export function applyProfileResponse(res: { user: AuthUser; token?: string }): void {
+  setUser(res.user);
+  if (res.token) setToken(res.token);
+}
+
+// --- Tasks API ---
+
+/** Atomically adds +1/-1 to a block's distraction count (server clamps to 0-100). */
+export async function adjustDistractionsApi(id: number | string, delta: 1 | -1) {
+  return apiPost<{ task: { id: number; distractions: number } }>(`/tasks/${id}/distractions`, { delta });
 }
 
 // --- Analytics API ---

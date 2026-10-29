@@ -3,6 +3,7 @@ import { apiGet, apiPut, isAuthenticated } from '@/lib/api';
 import { VocabularyWord } from '@/lib/types';
 import { useLocalStorage } from './use-local-storage';
 import { VOCABULARY_WORDS } from '@/lib/static-data';
+import { localDateString } from '@/lib/dates';
 
 interface VocabResponse {
   words: VocabularyWord[];
@@ -20,7 +21,7 @@ interface WordResponse {
 export function useVocabulary(lang?: string, page = 1, pageSize = 30) {
   const queryClient = useQueryClient();
   const loggedIn = isAuthenticated();
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateString();
 
   // Fallback to localStorage when not logged in
   const [localWords, setLocalWords] = useLocalStorage<VocabularyWord[]>('app-vocabulary', VOCABULARY_WORDS);

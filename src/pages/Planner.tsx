@@ -9,6 +9,7 @@ import { useTasks } from '@/hooks/use-tasks';
 import { CATEGORY_LABELS, CATEGORY_COLORS, type TaskCategory } from '@/lib/types';
 import { toast } from 'sonner';
 import { COMPLETION_MESSAGES } from '@/lib/static-data';
+import { localDateString } from '@/lib/dates';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
 
@@ -33,8 +34,8 @@ function timeToMinutes(t: string): number {
 }
 
 export default function Planner() {
-  const { todayTasks, addTask, updateTask, deleteTask } = useTasks();
-  const today = new Date().toISOString().split('T')[0];
+  const { todayTasks, addTask, updateTask, adjustDistractions, deleteTask } = useTasks();
+  const today = localDateString();
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<TaskCategory>('deep-work');
@@ -44,7 +45,7 @@ export default function Planner() {
 
   const isTimeValid = timeToMinutes(endTime) > timeToMinutes(startTime);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim()) {
       toast.error('Please enter a task name.');
       return;
@@ -53,7 +54,11 @@ export default function Planner() {
       toast.error('End time must be after start time.');
       return;
     }
-    addTask({ name: name.trim(), category, startTime, endTime, energy, date: today });
+    const result = await addTask({ name: name.trim(), category, startTime, endTime, energy, date: today });
+    if ('error' in result) {
+      toast.error(result.error);
+      return;
+    }
     setName('');
     toast('Block added.');
   };
@@ -187,11 +192,11 @@ export default function Planner() {
                         {/* Distraction counter */}
                         {task.status === 'pending' && (
                           <div className="flex items-center gap-1 border-l pl-2 ml-1">
-                            <button onClick={() => updateTask(task.id, { distractions: Math.max(0, task.distractions - 1) })} className="p-0.5 hover:bg-background/50 rounded">
+                            <button onClick={() => adjustDistractions(task.id, -1)} className="p-0.5 hover:bg-background/50 rounded">
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="text-xs font-mono w-4 text-center">{task.distractions}</span>
-                            <button onClick={() => updateTask(task.id, { distractions: task.distractions + 1 })} className="p-0.5 hover:bg-background/50 rounded">
+                            <button onClick={() => adjustDistractions(task.id, 1)} className="p-0.5 hover:bg-background/50 rounded">
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>

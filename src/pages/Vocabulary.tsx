@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bookmark, BookmarkCheck, CheckCircle2, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { useVocabulary } from '@/hooks/use-vocabulary';
+import { isStoredWord } from '@/lib/vocabulary';
 
 type VocabFilter = 'all' | 'saved' | 'english' | 'russian';
 
@@ -50,7 +51,7 @@ export default function Vocabulary() {
             <p className="text-sm text-muted-foreground col-span-2">No words for today yet.</p>
           )}
           {todayWords.map(word => (
-            <Card key={word.id} className="border">
+            <Card key={`${word.language}-${word.id}`} className="border">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">{word.word}</CardTitle>
@@ -74,26 +75,28 @@ export default function Vocabulary() {
                 {word.synonym && (
                   <p className="text-xs text-muted-foreground">Synonym: <span className="font-medium">{word.synonym}</span></p>
                 )}
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    size="sm"
-                    variant={word.learned ? 'default' : 'outline'}
-                    className="text-xs h-8"
-                    onClick={() => toggleLearned(word.id)}
-                  >
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    {word.learned ? 'Learned' : 'Mark learned'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={word.saved ? 'secondary' : 'outline'}
-                    className="text-xs h-8"
-                    onClick={() => toggleSaved(word.id)}
-                  >
-                    {word.saved ? <BookmarkCheck className="h-3.5 w-3.5 mr-1" /> : <Bookmark className="h-3.5 w-3.5 mr-1" />}
-                    {word.saved ? 'Saved' : 'Save'}
-                  </Button>
-                </div>
+                {isStoredWord(word) && (
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      variant={word.learned ? 'default' : 'outline'}
+                      className="text-xs h-8"
+                      onClick={() => toggleLearned(word.id)}
+                    >
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      {word.learned ? 'Learned' : 'Mark learned'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={word.saved ? 'secondary' : 'outline'}
+                      className="text-xs h-8"
+                      onClick={() => toggleSaved(word.id)}
+                    >
+                      {word.saved ? <BookmarkCheck className="h-3.5 w-3.5 mr-1" /> : <Bookmark className="h-3.5 w-3.5 mr-1" />}
+                      {word.saved ? 'Saved' : 'Save'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

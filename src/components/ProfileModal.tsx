@@ -5,9 +5,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiPut, getUser, setUser, isAuthenticated } from '@/lib/api';
+import { apiPut, getUser, isAuthenticated, applyProfileResponse, type AuthUser } from '@/lib/api';
+import { buildProfileUpdate } from '@/lib/profile-update';
+import { PASSWORD_POLICY_HINT } from '@/lib/password-policy';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
+
+const DEFAULT_TIMEZONE = 'Asia/Tashkent';
+
+// Browser-provided IANA zone list (empty if the browser can't list them).
+const TIMEZONES: string[] =
+  (Intl as unknown as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf?.('timeZone') ?? [];
 
 interface Props {
   open: boolean;
@@ -18,6 +26,7 @@ export function ProfileModal({ open, onClose }: Props) {
   const currentUser = getUser();
   const [name, setName] = useState(currentUser?.name ?? '');
   const [email, setEmail] = useState(currentUser?.email ?? '');
+  const [timezone, setTimezone] = useState(currentUser?.timezone ?? DEFAULT_TIMEZONE);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -30,6 +39,7 @@ export function ProfileModal({ open, onClose }: Props) {
       const u = getUser();
       setName(u?.name ?? '');
       setEmail(u?.email ?? '');
+      setTimezone(u?.timezone ?? DEFAULT_TIMEZONE);
       setOldPassword('');
       setNewPassword('');
       setShowOldPassword(false);
@@ -42,12 +52,10 @@ export function ProfileModal({ open, onClose }: Props) {
     setLoading(true);
     setError('');
     try {
-      const body: Record<string, string> = {};
-      if (name !== currentUser?.name) body.name = name;
-      if (email !== currentUser?.email) body.email = email;
-      if (newPassword) {
-        body.oldPassword = oldPassword;
-        body.newPassword = newPassword;
+      const { body, error: formError } = buildProfileUpdate(currentUser, { name, email, oldPassword, newPassword, timezone });
+      if (formError || !body) {
+        setError(formError ?? 'Update failed');
+        return;
       }
 
       if (Object.keys(body).length === 0) {
@@ -55,8 +63,8 @@ export function ProfileModal({ open, onClose }: Props) {
         return;
       }
 
-      const res = await apiPut<{ user: { id: number; name: string; email: string; role: string } }>('/me', body);
-      setUser(res.user);
+      const res = await apiPut<{ user: AuthUser; token?: string }>('/me', body);
+      applyProfileResponse(res);
       toast.success('Profile updated successfully');
       onClose();
     } catch (err: any) {
@@ -87,6 +95,21 @@ export function ProfileModal({ open, onClose }: Props) {
             <Input id="profile-email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="profile-timezone" className="text-sm">Time zone</Label>
+            <Input
+              id="profile-timezone"
+              list="profile-timezones"
+              value={timezone}
+              onChange={e => setTimezone(e.target.value.trim())}
+              placeholder="e.g. Asia/Tashkent"
+            />
+            <datalist id="profile-timezones">
+              {TIMEZONES.map(tz => <option key={tz} value={tz} />)}
+            </datalist>
+            <p className="text-xs text-muted-foreground">Used to decide what "today" is for your blocks and analytics.</p>
+          </div>
+
           <div className="border-t pt-4 space-y-3">
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Change password</p>
             <div className="space-y-2">
@@ -97,7 +120,7 @@ export function ProfileModal({ open, onClose }: Props) {
                   type={showOldPassword ? 'text' : 'password'}
                   value={oldPassword}
                   onChange={e => setOldPassword(e.target.value)}
-                  placeholder="Required for password change"
+                  placeholder="Required to change email or password"
                   className="pr-10"
                 />
                 <button
@@ -118,7 +141,7 @@ export function ProfileModal({ open, onClose }: Props) {
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
-                  placeholder="Leave empty to keep current"
+                  placeholder={`Leave empty to keep current · ${PASSWORD_POLICY_HINT.toLowerCase()}`}
                   className="pr-10"
                 />
                 <button
