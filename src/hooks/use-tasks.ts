@@ -3,6 +3,7 @@ import { apiGet, apiPost, apiPut, apiDelete, isAuthenticated } from '@/lib/api';
 import { Task } from '@/lib/types';
 import { useLocalStorage } from './use-local-storage';
 import { SAMPLE_TASKS } from '@/lib/static-data';
+import { localDateString } from '@/lib/dates';
 
 interface TasksResponse {
   tasks: Task[];
@@ -14,14 +15,10 @@ interface TaskResponse {
   task: Task;
 }
 
-// Returns today's date as YYYY-MM-DD
-function getToday() {
-  return new Date().toISOString().split('T')[0];
-}
 
 export function useTasks() {
   const queryClient = useQueryClient();
-  const today = getToday();
+  const today = localDateString();
   const loggedIn = isAuthenticated();
 
   // Fallback to localStorage when not logged in

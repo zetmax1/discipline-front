@@ -48,3 +48,18 @@ describe('buildProfileUpdate', () => {
     });
   });
 });
+
+describe('buildProfileUpdate timezone', () => {
+  const current = { name: 'Ann', email: 'ann@example.com', timezone: 'Asia/Tashkent' };
+  const form = { name: 'Ann', email: 'ann@example.com', oldPassword: '', newPassword: '', timezone: 'Asia/Tashkent' };
+
+  it('omits an unchanged timezone', () => {
+    expect(buildProfileUpdate(current, form)).toEqual({ body: {} });
+  });
+
+  it('sends a changed timezone without needing a password', () => {
+    expect(buildProfileUpdate(current, { ...form, timezone: 'Europe/Berlin' })).toEqual({
+      body: { timezone: 'Europe/Berlin' },
+    });
+  });
+});

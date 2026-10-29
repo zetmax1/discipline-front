@@ -9,6 +9,7 @@ import { Commitment, WeeklyGoals, ScheduleBlock } from '@/lib/types';
 import { CATEGORY_COLORS } from '@/lib/types';
 
 import { apiPost } from '@/lib/api';
+import { weeklyPlanDate } from '@/lib/dates';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CalendarCheck } from 'lucide-react';
 
@@ -55,28 +56,16 @@ export default function SmartSchedule() {
     try {
       setIsSaving(true);
       
-      // Calculate Dates for the coming week starting tomorrow
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
+      // Map each weekday to its next local calendar date, starting tomorrow
+      const now = new Date();
       const tasksToCreate = result.blocks.filter(b => b.category !== 'fixed').map(block => {
-          // Determine offsets from Monday mapping to actual dates could be complex, 
-          // but for now we'll naively assign dates or just focus on generating them as valid Task Requests 
-          // Let's map days of week to upcoming valid calendar dates
-          const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(block.day);
-          const taskDate = new Date(tomorrow);
-          // Find next matching day of week
-          while (taskDate.getDay() !== dayIndex) {
-              taskDate.setDate(taskDate.getDate() + 1);
-          }
-          
           return {
               name: block.name,
               category: block.category,
               startTime: block.startTime,
               endTime: block.endTime,
               energy: ['deep-work', 'study'].includes(block.category) ? 5 : 3,
-              date: taskDate.toISOString().split('T')[0]
+              date: weeklyPlanDate(block.day, now)
           };
       });
 

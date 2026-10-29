@@ -1,6 +1,7 @@
 import { Task, VocabularyWord } from './types';
+import { localDateString } from './dates';
 
-const today = new Date().toISOString().split('T')[0];
+const today = localDateString();
 
 export const SAMPLE_TASKS: Task[] = [
   { id: '1', name: 'Morning routine', category: 'deep-work', startTime: '08:00', endTime: '09:30', status: 'pending', distractions: 0, energy: 5, date: today },

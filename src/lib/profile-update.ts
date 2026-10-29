@@ -5,6 +5,7 @@ export interface ProfileForm {
   email: string;
   oldPassword: string;
   newPassword: string;
+  timezone?: string;
 }
 
 export interface ProfileUpdateBody {
@@ -12,6 +13,7 @@ export interface ProfileUpdateBody {
   email?: string;
   oldPassword?: string;
   newPassword?: string;
+  timezone?: string;
 }
 
 /**
@@ -19,11 +21,12 @@ export interface ProfileUpdateBody {
  * requires the current password (the backend rejects it otherwise).
  */
 export function buildProfileUpdate(
-  current: { name?: string; email?: string } | null,
+  current: { name?: string; email?: string; timezone?: string } | null,
   form: ProfileForm,
 ): { body?: ProfileUpdateBody; error?: string } {
   const body: ProfileUpdateBody = {};
   if (form.name !== current?.name) body.name = form.name;
+  if (form.timezone !== undefined && form.timezone !== current?.timezone) body.timezone = form.timezone;
 
   const changingEmail = form.email !== current?.email;
   const changingPassword = form.newPassword !== '';

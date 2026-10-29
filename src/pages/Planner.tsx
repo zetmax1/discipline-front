@@ -9,6 +9,7 @@ import { useTasks } from '@/hooks/use-tasks';
 import { CATEGORY_LABELS, CATEGORY_COLORS, type TaskCategory } from '@/lib/types';
 import { toast } from 'sonner';
 import { COMPLETION_MESSAGES } from '@/lib/static-data';
+import { localDateString } from '@/lib/dates';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
 
@@ -34,7 +35,7 @@ function timeToMinutes(t: string): number {
 
 export default function Planner() {
   const { todayTasks, addTask, updateTask, deleteTask } = useTasks();
-  const today = new Date().toISOString().split('T')[0];
+  const today = localDateString();
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<TaskCategory>('deep-work');
