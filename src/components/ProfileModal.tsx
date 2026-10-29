@@ -5,7 +5,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiPut, getUser, setUser, isAuthenticated, type AuthUser } from '@/lib/api';
+import { apiPut, getUser, isAuthenticated, applyProfileResponse, type AuthUser } from '@/lib/api';
 import { buildProfileUpdate } from '@/lib/profile-update';
 import { PASSWORD_POLICY_HINT } from '@/lib/password-policy';
 import { toast } from 'sonner';
@@ -63,8 +63,8 @@ export function ProfileModal({ open, onClose }: Props) {
         return;
       }
 
-      const res = await apiPut<{ user: AuthUser }>('/me', body);
-      setUser(res.user);
+      const res = await apiPut<{ user: AuthUser; token?: string }>('/me', body);
+      applyProfileResponse(res);
       toast.success('Profile updated successfully');
       onClose();
     } catch (err: any) {

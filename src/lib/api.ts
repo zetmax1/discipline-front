@@ -148,11 +148,37 @@ export async function registerApi(name: string, email: string, password: string)
   return data;
 }
 
-export function logout() {
+/**
+ * Revokes every token of this user on the server (best effort), then clears local auth.
+ * The server bumps the user's token version, so a copied token stops working too.
+ */
+export async function revokeSession(): Promise<void> {
+  const token = getToken();
+  if (token) {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      // Offline: the token still expires within 24h; clear it locally regardless.
+    }
+  }
   removeToken();
   removeUser();
   removeDemoMode();
-  window.location.href = '/login';
+}
+
+export function logout() {
+  void revokeSession().finally(() => {
+    window.location.href = '/login';
+  });
+}
+
+/** Stores the PUT /me result; a password change returns a replacement token. */
+export function applyProfileResponse(res: { user: AuthUser; token?: string }): void {
+  setUser(res.user);
+  if (res.token) setToken(res.token);
 }
 
 // --- Tasks API ---
