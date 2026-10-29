@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import { Brain, ArrowRight, Loader2, Play } from 'lucide-react';
 import { setDemoMode } from '@/lib/api';
+import { passwordPolicyError, PASSWORD_POLICY_HINT } from '@/lib/password-policy';
 
 export default function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -26,6 +27,11 @@ export default function Login() {
       } else {
         if (!name.trim()) {
           toast.error('Name is required');
+          return;
+        }
+        const policyError = passwordPolicyError(password);
+        if (policyError) {
+          toast.error(policyError);
           return;
         }
         await register(name.trim(), email, password);
@@ -119,6 +125,9 @@ export default function Login() {
                   className="h-11"
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />
+                {mode === 'register' && (
+                  <p className="text-xs text-muted-foreground">{PASSWORD_POLICY_HINT}</p>
+                )}
               </div>
 
               {error && (
