@@ -34,7 +34,7 @@ function timeToMinutes(t: string): number {
 }
 
 export default function Planner() {
-  const { todayTasks, addTask, updateTask, deleteTask } = useTasks();
+  const { todayTasks, addTask, updateTask, adjustDistractions, deleteTask } = useTasks();
   const today = localDateString();
 
   const [name, setName] = useState('');
@@ -188,11 +188,11 @@ export default function Planner() {
                         {/* Distraction counter */}
                         {task.status === 'pending' && (
                           <div className="flex items-center gap-1 border-l pl-2 ml-1">
-                            <button onClick={() => updateTask(task.id, { distractions: Math.max(0, task.distractions - 1) })} className="p-0.5 hover:bg-background/50 rounded">
+                            <button onClick={() => adjustDistractions(task.id, -1)} className="p-0.5 hover:bg-background/50 rounded">
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="text-xs font-mono w-4 text-center">{task.distractions}</span>
-                            <button onClick={() => updateTask(task.id, { distractions: task.distractions + 1 })} className="p-0.5 hover:bg-background/50 rounded">
+                            <button onClick={() => adjustDistractions(task.id, 1)} className="p-0.5 hover:bg-background/50 rounded">
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>

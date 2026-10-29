@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete, isAuthenticated } from '@/lib/api';
+import { apiGet, apiPost, apiPut, apiDelete, isAuthenticated, adjustDistractionsApi } from '@/lib/api';
+import { applyDistractionDelta } from '@/lib/distractions';
 import { Task } from '@/lib/types';
 import { useLocalStorage } from './use-local-storage';
 import { SAMPLE_TASKS } from '@/lib/static-data';
@@ -50,6 +51,11 @@ export function useTasks() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
+  const distractionsMutation = useMutation({
+    mutationFn: ({ id, delta }: { id: number | string; delta: 1 | -1 }) => adjustDistractionsApi(id, delta),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) => apiDelete<{ message: string }>(`/tasks/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
@@ -79,6 +85,16 @@ export function useTasks() {
     }
   };
 
+  // Sends a +1/-1 delta so rapid clicks are counted server-side instead of overwriting each other.
+  const adjustDistractions = (id: string | number, delta: 1 | -1) => {
+    if (loggedIn) {
+      distractionsMutation.mutate({ id, delta });
+    } else {
+      setLocalTasks(prev => prev.map(t =>
+        t.id === String(id) ? { ...t, distractions: applyDistractionDelta(t.distractions, delta) } : t));
+    }
+  };
+
   const deleteTask = (id: string | number) => {
     if (loggedIn) {
       deleteMutation.mutate(id);
@@ -92,6 +108,7 @@ export function useTasks() {
     todayTasks,
     addTask,
     updateTask,
+    adjustDistractions,
     deleteTask,
     isLoading: loggedIn ? isLoading : false,
     setTasks: setLocalTasks,

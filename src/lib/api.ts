@@ -155,6 +155,13 @@ export function logout() {
   window.location.href = '/login';
 }
 
+// --- Tasks API ---
+
+/** Atomically adds +1/-1 to a block's distraction count (server clamps to 0-100). */
+export async function adjustDistractionsApi(id: number | string, delta: 1 | -1) {
+  return apiPost<{ task: { id: number; distractions: number } }>(`/tasks/${id}/distractions`, { delta });
+}
+
 // --- Analytics API ---
 
 export async function fetchAnalytics(range: 'week' | 'month') {
