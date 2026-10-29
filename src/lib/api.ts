@@ -1,4 +1,6 @@
 // API client for the Discipline backend
+import type { z } from 'zod/v4';
+import { FocusPatternsResponse, PeriodReport } from '@/contracts/analytics';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // --- Token management ---
@@ -190,10 +192,25 @@ export async function adjustDistractionsApi(id: number | string, delta: 1 | -1) 
 
 // --- Analytics API ---
 
-export async function fetchAnalytics(range: 'week' | 'month') {
-  return apiGet<any>(`/analytics?range=${range}`);
+/** Thrown when a response does not match the contract in src/contracts/analytics.ts. */
+export class ContractError extends Error {
+  constructor(what: string, issues: string) {
+    super(`Unexpected response from ${what}: ${issues}`);
+  }
 }
 
-export async function fetchFocusPatterns(days: number = 30) {
-  return apiGet<any>(`/analytics/focus-patterns?days=${days}`);
+function parseWith<S extends z.ZodType>(schema: S, what: string) {
+  return (value: unknown): z.infer<S> => {
+    const result = schema.safeParse(value);
+    if (result.error) throw new ContractError(what, result.error.message);
+    return result.data;
+  };
+}
+
+export async function fetchAnalytics(range: 'week' | 'month'): Promise<PeriodReport> {
+  return apiGet<unknown>(`/analytics?range=${range}`).then(parseWith(PeriodReport, 'analytics'));
+}
+
+export async function fetchFocusPatterns(days: number = 30): Promise<FocusPatternsResponse> {
+  return apiGet<unknown>(`/analytics/focus-patterns?days=${days}`).then(parseWith(FocusPatternsResponse, 'focus patterns'));
 }
