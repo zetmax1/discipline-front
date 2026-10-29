@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiPut, getUser, setUser, isAuthenticated } from '@/lib/api';
+import { buildProfileUpdate } from '@/lib/profile-update';
+import { PASSWORD_POLICY_HINT } from '@/lib/password-policy';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -42,12 +44,10 @@ export function ProfileModal({ open, onClose }: Props) {
     setLoading(true);
     setError('');
     try {
-      const body: Record<string, string> = {};
-      if (name !== currentUser?.name) body.name = name;
-      if (email !== currentUser?.email) body.email = email;
-      if (newPassword) {
-        body.oldPassword = oldPassword;
-        body.newPassword = newPassword;
+      const { body, error: formError } = buildProfileUpdate(currentUser, { name, email, oldPassword, newPassword });
+      if (formError || !body) {
+        setError(formError ?? 'Update failed');
+        return;
       }
 
       if (Object.keys(body).length === 0) {
@@ -97,7 +97,7 @@ export function ProfileModal({ open, onClose }: Props) {
                   type={showOldPassword ? 'text' : 'password'}
                   value={oldPassword}
                   onChange={e => setOldPassword(e.target.value)}
-                  placeholder="Required for password change"
+                  placeholder="Required to change email or password"
                   className="pr-10"
                 />
                 <button
@@ -118,7 +118,7 @@ export function ProfileModal({ open, onClose }: Props) {
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
-                  placeholder="Leave empty to keep current"
+                  placeholder={`Leave empty to keep current · ${PASSWORD_POLICY_HINT.toLowerCase()}`}
                   className="pr-10"
                 />
                 <button
