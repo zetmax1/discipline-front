@@ -45,7 +45,7 @@ export default function Planner() {
 
   const isTimeValid = timeToMinutes(endTime) > timeToMinutes(startTime);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim()) {
       toast.error('Please enter a task name.');
       return;
@@ -54,7 +54,11 @@ export default function Planner() {
       toast.error('End time must be after start time.');
       return;
     }
-    addTask({ name: name.trim(), category, startTime, endTime, energy, date: today });
+    const result = await addTask({ name: name.trim(), category, startTime, endTime, energy, date: today });
+    if ('error' in result) {
+      toast.error(result.error);
+      return;
+    }
     setName('');
     toast('Block added.');
   };

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPost, apiPut, apiDelete, isAuthenticated, adjustDistractionsApi } from '@/lib/api';
 import { applyDistractionDelta } from '@/lib/distractions';
 import { Task } from '@/lib/types';
+import { toast } from 'sonner';
 import { useLocalStorage } from './use-local-storage';
 import { SAMPLE_TASKS } from '@/lib/static-data';
 import { localDateString } from '@/lib/dates';
@@ -16,6 +17,12 @@ interface TaskResponse {
   task: Task;
 }
 
+
+export type AddResult = { ok: true } | { ok: false; error: string };
+
+function showWriteError(err: Error) {
+  toast.error(err.message || 'Could not save the change');
+}
 
 export function useTasks() {
   const queryClient = useQueryClient();
@@ -49,22 +56,31 @@ export function useTasks() {
     mutationFn: ({ id, updates }: { id: number | string; updates: Partial<Task> }) =>
       apiPut<TaskResponse>(`/tasks/${id}`, updates),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onError: showWriteError,
   });
 
   const distractionsMutation = useMutation({
     mutationFn: ({ id, delta }: { id: number | string; delta: 1 | -1 }) => adjustDistractionsApi(id, delta),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onError: showWriteError,
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) => apiDelete<{ message: string }>(`/tasks/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onError: showWriteError,
   });
 
   // Unified API (works with both localStorage and API)
-  const addTask = (task: Omit<Task, 'id' | 'status' | 'distractions'>) => {
+  // Resolves with the server's verdict so callers can show 400/409 errors (invalid or overlapping block).
+  const addTask = async (task: Omit<Task, 'id' | 'status' | 'distractions'>): Promise<AddResult> => {
     if (loggedIn) {
-      addMutation.mutate(task);
+      try {
+        await addMutation.mutateAsync(task);
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: err instanceof Error ? err.message : 'Could not add block' };
+      }
     } else {
       const newTask: Task = {
         ...task,
@@ -73,7 +89,7 @@ export function useTasks() {
         distractions: 0,
       };
       setLocalTasks(prev => [...prev, newTask]);
-      return newTask;
+      return { ok: true };
     }
   };
 
