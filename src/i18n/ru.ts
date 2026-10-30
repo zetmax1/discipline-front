@@ -307,6 +307,7 @@ export const ru: Messages = {
   'errors.session_invalid': 'Не удалось сохранить сессию фокуса. Проверьте время.',
   'errors.session_active': 'Другая сессия фокуса уже идёт.',
   'errors.parking_note_invalid': 'Заметка — от 1 до 280 символов.',
+  'errors.shutdown_invalid': 'Победа дня — до 280 символов.',
   'errors.word_not_found': 'Этого слова больше нет.',
   'errors.word_id_invalid': 'Слово не найдено.',
   'errors.date_invalid': 'Выберите корректную дату.',

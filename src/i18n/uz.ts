@@ -299,6 +299,7 @@ export const uz: Messages = {
   'errors.session_invalid': 'Bu diqqat sessiyasini saqlab boʻlmadi. Vaqtlarini tekshiring.',
   'errors.session_active': 'Boshqa diqqat sessiyasi allaqachon ketmoqda.',
   'errors.parking_note_invalid': 'Eslatma 1–280 ta belgidan iborat boʻlsin.',
+  'errors.shutdown_invalid': 'Yutugʻingiz 280 ta belgigacha boʻlishi mumkin.',
   'errors.word_not_found': 'Bu soʻz endi mavjud emas.',
   'errors.word_id_invalid': 'Bu soʻz topilmadi.',
   'errors.date_invalid': 'Toʻgʻri sanani tanlang.',

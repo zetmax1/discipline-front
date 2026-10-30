@@ -50,6 +50,7 @@
           "session_invalid",
           "session_active",
           "parking_note_invalid",
+          "shutdown_invalid",
           "word_not_found",
           "word_id_invalid",
           "date_invalid",

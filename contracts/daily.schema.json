@@ -1,4 +1,117 @@
 {
+  "shutdown": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string"
+      },
+      "win": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "closedAt": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "date",
+      "win",
+      "closedAt"
+    ],
+    "additionalProperties": {}
+  },
+  "shutdown_response": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "shutdown": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "win": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "win",
+          "closedAt"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "required": [
+      "shutdown"
+    ],
+    "additionalProperties": {}
+  },
+  "shutdown_today": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string"
+      },
+      "shutdown": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "win": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "closedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "date",
+              "win",
+              "closedAt"
+            ],
+            "additionalProperties": {}
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "date",
+      "shutdown"
+    ],
+    "additionalProperties": {}
+  },
   "session": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",

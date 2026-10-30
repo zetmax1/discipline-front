@@ -1,0 +1,18 @@
+{
+  "event_name": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "string",
+    "enum": [
+      "block_created",
+      "block_status_changed",
+      "block_moved",
+      "block_checked_in",
+      "checkin_morning_done",
+      "session_started",
+      "session_completed",
+      "session_abandoned",
+      "distraction_logged",
+      "shutdown_done"
+    ]
+  }
+}

@@ -320,6 +320,7 @@ export const en = {
   'errors.session_invalid': 'This focus session can't be saved. Please check its times.',
   'errors.session_active': 'Another focus session is already running.',
   'errors.parking_note_invalid': 'A note needs 1–280 characters.',
+  'errors.shutdown_invalid': 'Your win can be up to 280 characters.',
   'errors.word_not_found': 'This word no longer exists.',
   'errors.word_id_invalid': 'This word could not be found.',
   'errors.date_invalid': 'Choose a valid date.',

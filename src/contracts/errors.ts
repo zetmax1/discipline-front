@@ -17,7 +17,7 @@ export const ERROR_CODES = [
   'task_end_before_start', 'task_category_invalid', 'task_energy_invalid', 'task_status_invalid',
   'task_distractions_invalid', 'task_overlap', 'plan_week_invalid',
   'task_focus_rating_invalid', 'task_note_too_long', 'task_not_movable', 'idempotency_key_required',
-  'checkin_invalid', 'session_invalid', 'session_active', 'parking_note_invalid',
+  'checkin_invalid', 'session_invalid', 'session_active', 'parking_note_invalid', 'shutdown_invalid',
   'word_not_found', 'word_id_invalid', 'date_invalid',
   'range_invalid', 'days_invalid', 'analytics_unavailable', 'analytics_validation_failed',
 ] as const;

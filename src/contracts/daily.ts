@@ -49,8 +49,18 @@ export type SessionResponse = z.infer<typeof SessionResponse>;
 export const SessionList = z.looseObject({ sessions: z.array(FocusSession), serverNow: z.string() });
 export type SessionList = z.infer<typeof SessionList>;
 
+/** An evening shutdown: the local day is closed (with one win). */
+export const Shutdown = z.looseObject({ date: z.string(), win: z.string().nullable(), closedAt: z.string() });
+export type Shutdown = z.infer<typeof Shutdown>;
+export const ShutdownResponse = z.looseObject({ shutdown: Shutdown });
+export const ShutdownToday = z.looseObject({ date: z.string(), shutdown: Shutdown.nullable() });
+export type ShutdownToday = z.infer<typeof ShutdownToday>;
+
 export function exportContract() {
   return {
+    shutdown: z.toJSONSchema(Shutdown),
+    shutdown_response: z.toJSONSchema(ShutdownResponse),
+    shutdown_today: z.toJSONSchema(ShutdownToday),
     session: z.toJSONSchema(FocusSession),
     session_response: z.toJSONSchema(SessionResponse),
     session_list: z.toJSONSchema(SessionList),
