@@ -13,20 +13,26 @@ export function BlockCheckin({ blockId, compact = false }: { blockId: number | s
   const queryClient = useQueryClient();
   const [rating, setRating] = useState<Outcome | null>(null);
 
-  const send = async (body: BlockCheckinBody) => {
+  const refresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+  };
+
+  /** Saves at once; the list refreshes after the rating prompt, so the prompt stays on screen. */
+  const send = async (body: BlockCheckinBody, then: 'refresh' | 'rate') => {
     try {
       const res = await checkInBlock(blockId, body);
       toast(res.queued ? t('sync.queued') : t('checkinBlock.saved'));
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      if (then === 'refresh') await refresh();
     } catch (err) {
       toast.error(errorMessage(err, 'planner.saveFailed'));
+      setRating(null);
     }
   };
 
   const choose = (status: Outcome) => {
-    void send({ status });
     if (status !== 'skipped') setRating(status);
+    void send({ status }, status === 'skipped' ? 'refresh' : 'rate');
   };
 
   if (rating) {
@@ -36,11 +42,11 @@ export function BlockCheckin({ blockId, compact = false }: { blockId: number | s
         {[1, 2, 3, 4, 5].map(n => (
           <Button key={n} size="sm" variant="outline" className="h-8 w-8 p-0"
             aria-label={t('checkin.rate', { label: t('checkinBlock.rateTitle'), n })}
-            onClick={() => { void send({ status: rating, focusRating: n }); setRating(null); }}>
+            onClick={() => { void send({ status: rating, focusRating: n }, 'refresh'); setRating(null); }}>
             {n}
           </Button>
         ))}
-        <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setRating(null)}>{t('checkinBlock.rateSkip')}</Button>
+        <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setRating(null); void refresh(); }}>{t('checkinBlock.rateSkip')}</Button>
       </div>
     );
   }
