@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiPut, getUser, isAuthenticated, applyProfileResponse, type AuthUser } from '@/lib/api';
 import { buildProfileUpdate } from '@/lib/profile-update';
-import { PASSWORD_POLICY_HINT } from '@/lib/password-policy';
+import { MIN_PASSWORD_CHARS } from '@/lib/password-policy';
+import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -24,6 +25,7 @@ interface Props {
 
 export function ProfileModal({ open, onClose }: Props) {
   const currentUser = getUser();
+  const { t, locale, errorMessage } = useI18n();
   const [name, setName] = useState(currentUser?.name ?? '');
   const [email, setEmail] = useState(currentUser?.email ?? '');
   const [timezone, setTimezone] = useState(currentUser?.timezone ?? DEFAULT_TIMEZONE);
@@ -52,9 +54,9 @@ export function ProfileModal({ open, onClose }: Props) {
     setLoading(true);
     setError('');
     try {
-      const { body, error: formError } = buildProfileUpdate(currentUser, { name, email, oldPassword, newPassword, timezone });
+      const { body, error: formError } = buildProfileUpdate(currentUser, { name, email, oldPassword, newPassword, timezone }, locale);
       if (formError || !body) {
-        setError(formError ?? 'Update failed');
+        setError(formError ?? t('profile.updateFailed'));
         return;
       }
 
@@ -65,10 +67,10 @@ export function ProfileModal({ open, onClose }: Props) {
 
       const res = await apiPut<{ user: AuthUser; token?: string }>('/me', body);
       applyProfileResponse(res);
-      toast.success('Profile updated successfully');
+      toast.success(t('profile.updated'));
       onClose();
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Update failed');
+      setError(errorMessage(err, 'profile.updateFailed'));
     } finally {
       setLoading(false);
     }
@@ -80,52 +82,53 @@ export function ProfileModal({ open, onClose }: Props) {
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
-          <DialogDescription>Update your name, email, or password</DialogDescription>
+          <DialogTitle>{t('profile.title')}</DialogTitle>
+          <DialogDescription>{t('profile.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="profile-name" className="text-sm">Name</Label>
+            <Label htmlFor="profile-name" className="text-sm">{t('profile.name')}</Label>
             <Input id="profile-name" value={name} onChange={e => setName(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="profile-email" className="text-sm">Email</Label>
+            <Label htmlFor="profile-email" className="text-sm">{t('profile.email')}</Label>
             <Input id="profile-email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="profile-timezone" className="text-sm">Time zone</Label>
+            <Label htmlFor="profile-timezone" className="text-sm">{t('profile.timezone')}</Label>
             <Input
               id="profile-timezone"
               list="profile-timezones"
               value={timezone}
               onChange={e => setTimezone(e.target.value.trim())}
-              placeholder="e.g. Asia/Tashkent"
+              placeholder={t('profile.timezonePlaceholder')}
             />
             <datalist id="profile-timezones">
               {TIMEZONES.map(tz => <option key={tz} value={tz} />)}
             </datalist>
-            <p className="text-xs text-muted-foreground">Used to decide what "today" is for your blocks and analytics.</p>
+            <p className="text-xs text-muted-foreground">{t('profile.timezoneHint')}</p>
           </div>
 
           <div className="border-t pt-4 space-y-3">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Change password</p>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t('profile.changePassword')}</p>
             <div className="space-y-2">
-              <Label htmlFor="old-password" className="text-sm">Current Password</Label>
+              <Label htmlFor="old-password" className="text-sm">{t('profile.currentPassword')}</Label>
               <div className="relative">
                 <Input
                   id="old-password"
                   type={showOldPassword ? 'text' : 'password'}
                   value={oldPassword}
                   onChange={e => setOldPassword(e.target.value)}
-                  placeholder="Required to change email or password"
+                  placeholder={t('profile.currentPasswordPlaceholder')}
                   className="pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowOldPassword(!showOldPassword)}
+                  aria-label={showOldPassword ? t('profile.hidePassword') : t('profile.showPassword')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
@@ -134,19 +137,20 @@ export function ProfileModal({ open, onClose }: Props) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-password" className="text-sm">New Password</Label>
+              <Label htmlFor="new-password" className="text-sm">{t('profile.newPassword')}</Label>
               <div className="relative">
                 <Input
                   id="new-password"
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
-                  placeholder={`Leave empty to keep current · ${PASSWORD_POLICY_HINT.toLowerCase()}`}
+                  placeholder={t('profile.newPasswordPlaceholder', { min: MIN_PASSWORD_CHARS })}
                   className="pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? t('profile.hidePassword') : t('profile.showPassword')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
@@ -161,10 +165,10 @@ export function ProfileModal({ open, onClose }: Props) {
           )}
 
           <div className="flex gap-2 justify-end pt-2">
-            <Button variant="outline" size="sm" onClick={onClose} disabled={loading}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={onClose} disabled={loading}>{t('common.cancel')}</Button>
             <Button size="sm" onClick={handleSave} disabled={loading}>
               {loading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </div>

@@ -9,7 +9,9 @@ import { toast } from 'sonner';
 import { Brain, ArrowRight, Loader2, Play } from 'lucide-react';
 import { ApiError, setDemoMode } from '@/lib/api';
 import { Turnstile } from '@/components/Turnstile';
-import { passwordPolicyError, PASSWORD_POLICY_HINT } from '@/lib/password-policy';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { passwordPolicyError, passwordPolicyHint } from '@/lib/password-policy';
+import { useI18n } from '@/i18n';
 
 export default function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -21,6 +23,7 @@ export default function Login() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaKey, setCaptchaKey] = useState(0);
   const { login, register, loading, error } = useAuth();
+  const { t, locale, errorMessage } = useI18n();
   const navigate = useNavigate();
   const showCaptcha = mode === 'register' || loginCaptcha;
 
@@ -37,25 +40,25 @@ export default function Login() {
         const token = loginCaptcha ? captchaToken ?? undefined : undefined;
         if (loginCaptcha) resetCaptcha();
         await login(email, password, token);
-        toast('Welcome back!');
+        toast(t('auth.welcomeToast'));
       } else {
         if (!name.trim()) {
-          toast.error('Name is required');
+          toast.error(t('auth.nameRequired'));
           return;
         }
-        const policyError = passwordPolicyError(password);
+        const policyError = passwordPolicyError(password, locale);
         if (policyError) {
           toast.error(policyError);
           return;
         }
         if (!captchaToken) {
-          toast.error('Please complete the verification.');
+          toast.error(t('auth.completeVerification'));
           return;
         }
         const token = captchaToken;
         resetCaptcha();
         await register(name.trim(), email, password, token);
-        toast('Account created successfully!');
+        toast(t('auth.accountCreated'));
       }
       navigate('/');
     } catch (err) {
@@ -63,9 +66,9 @@ export default function Login() {
         setLoginCaptcha(true);
       }
       // Use the error just caught; the hook's `error` state is from the previous render.
-      let message = err instanceof Error && err.message ? err.message : 'Authentication failed';
+      let message = errorMessage(err, 'auth.failed');
       if (err instanceof ApiError && err.status === 429 && err.retryAfter) {
-        message += ` Try again in ${err.retryAfter} s.`;
+        message += ' ' + t('auth.retryIn', { seconds: err.retryAfter });
       }
       toast.error(message);
     }
@@ -73,12 +76,15 @@ export default function Login() {
 
   const handleDemo = () => {
     setDemoMode();
-    toast('Welcome! You are using the demo version. Data is saved locally.');
+    toast(t('auth.demoWelcome'));
     navigate('/');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="absolute top-4 right-4 z-20 flex gap-2">
+        <LanguageSwitcher />
+      </div>
       {/* Background pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[40%] -right-[20%] w-[60%] h-[80%] rounded-full bg-primary/[0.03] blur-3xl" />
@@ -91,9 +97,9 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-4 shadow-lg shadow-primary/20">
             <Brain className="h-7 w-7" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Discipline</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('common.appName')}</h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Track your focus. Build your habits.
+            {t('auth.tagline')}
           </p>
         </div>
 
@@ -101,24 +107,21 @@ export default function Login() {
         <Card className="border shadow-xl shadow-black/[0.03]">
           <CardHeader className="pb-4 text-center">
             <CardTitle className="text-xl">
-              {mode === 'login' ? 'Welcome back' : 'Create account'}
+              {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
             </CardTitle>
             <CardDescription>
-              {mode === 'login'
-                ? 'Enter your credentials to continue'
-                : 'Start your productivity journey'
-              }
+              {mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'register' && (
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium">Name</Label>
+                  <Label htmlFor="name" className="text-sm font-medium">{t('auth.name')}</Label>
                   <Input
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder={t('auth.namePlaceholder')}
                     value={name}
                     onChange={e => setName(e.target.value)}
                     className="h-11"
@@ -128,11 +131,11 @@ export default function Login() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
@@ -142,7 +145,7 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">{t('auth.password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -154,15 +157,15 @@ export default function Login() {
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />
                 {mode === 'register' && (
-                  <p className="text-xs text-muted-foreground">{PASSWORD_POLICY_HINT}</p>
+                  <p className="text-xs text-muted-foreground">{passwordPolicyHint(locale)}</p>
                 )}
               </div>
 
               {showCaptcha && <Turnstile key={`${mode}-${captchaKey}`} onToken={setCaptchaToken} />}
 
-              {error && (
+              {error != null && (
                 <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
-                  {error}
+                  {errorMessage(error, 'auth.failed')}
                 </p>
               )}
 
@@ -176,14 +179,14 @@ export default function Login() {
                 ) : (
                   <ArrowRight className="h-4 w-4 mr-2" />
                 )}
-                {mode === 'login' ? 'Sign in' : 'Create account'}
+                {mode === 'login' ? t('auth.signIn') : t('auth.createAccount')}
               </Button>
             </form>
 
             {/* Toggle mode */}
             <div className="mt-6 text-center">
               <span className="text-sm text-muted-foreground">
-                {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+                {mode === 'login' ? t('auth.noAccount') : t('auth.haveAccount')}
               </span>
               <button
                 onClick={() => {
@@ -196,7 +199,7 @@ export default function Login() {
                 }}
                 className="ml-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
               >
-                {mode === 'login' ? 'Sign up' : 'Sign in'}
+                {mode === 'login' ? t('auth.signUp') : t('auth.signIn')}
               </button>
             </div>
 
@@ -206,7 +209,7 @@ export default function Login() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-3 text-muted-foreground">or</span>
+                <span className="bg-card px-3 text-muted-foreground">{t('auth.or')}</span>
               </div>
             </div>
 
@@ -216,16 +219,16 @@ export default function Login() {
               onClick={handleDemo}
             >
               <Play className="h-3.5 w-3.5 mr-2" />
-              Try Demo Version
+              {t('auth.tryDemo')}
             </Button>
             <p className="text-[11px] text-muted-foreground text-center mt-2">
-              No account needed · Data saved locally
+              {t('auth.demoNote')}
             </p>
           </CardContent>
         </Card>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Discipline creates freedom.
+          {t('auth.motto')}
         </p>
       </div>
     </div>

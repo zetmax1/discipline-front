@@ -7,7 +7,8 @@ import { TrendingUp, TrendingDown, RefreshCcw, Loader2 } from 'lucide-react';
 import { fetchAnalytics, fetchFocusPatterns, isDemoOnly } from '@/lib/api';
 import { DemoUnavailable } from '@/components/DemoUnavailable';
 import type { PatternsFound } from '@/contracts/analytics';
-import { formatHours, formatScore, patternsMessage } from '@/lib/analytics-format';
+import { formatHours, formatScore, patternInsights, patternsMessage } from '@/lib/analytics-format';
+import { useI18n } from '@/i18n';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -17,12 +18,15 @@ function ChartImage({ image, alt, className }: { image: string; alt: string; cla
 }
 
 export default function Analytics() {
-  if (isDemoOnly()) return <DemoUnavailable feature="Analytics" />;
+  const { t } = useI18n();
+  if (isDemoOnly()) return <DemoUnavailable feature={t('nav.analytics')} />;
   return <AnalyticsContent />;
 }
 
 function AnalyticsContent() {
   const [range, setRange] = useState<'week' | 'month'>('week');
+  const { t, locale, errorMessage } = useI18n();
+  const hours = (m: number) => formatHours(m, locale);
   const days = range === 'week' ? 7 : 30;
 
   const report = useQuery({ queryKey: ['analytics', range], queryFn: () => fetchAnalytics(range) });
@@ -35,7 +39,7 @@ function AnalyticsContent() {
     return (
       <div className="flex justify-center items-center h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mr-2" />
-        <p className="text-muted-foreground">Loading deep insights...</p>
+        <p className="text-muted-foreground">{t('analytics.loading')}</p>
       </div>
     );
   }
@@ -43,10 +47,10 @@ function AnalyticsContent() {
   if (error || !report.data || !focus.data) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center h-[50vh] space-y-4">
-        <p className="text-destructive font-medium">{error?.message || 'Failed to load analytics data'}</p>
+        <p className="text-destructive font-medium">{errorMessage(error, 'analytics.loadFailed')}</p>
         <Button onClick={() => { report.refetch(); focus.refetch(); }} variant="outline" size="sm">
           <RefreshCcw className="h-4 w-4 mr-2" />
-          Retry
+          {t('common.retry')}
         </Button>
       </div>
     );
@@ -55,8 +59,8 @@ function AnalyticsContent() {
   const r = report.data;
   const f = focus.data;
   const change = r.comparison.change;
-  const patternsNote = patternsMessage(r.patterns);
-  const insights = r.patterns.insufficient_data === false ? (r.patterns as PatternsFound).insights : [];
+  const patternsNote = patternsMessage(r.patterns, locale);
+  const insights = r.patterns.insufficient_data === false ? patternInsights(r.patterns as PatternsFound, locale) : [];
 
   // Daily series (null completion = nothing was due that day -> gap, not 0)
   const series = r.days.map(d => ({
@@ -68,15 +72,15 @@ function AnalyticsContent() {
   return (
     <div className="space-y-8 max-w-6xl pb-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Analytics engine</h1>
+        <h1 className="text-2xl font-bold">{t('analytics.title')}</h1>
         <div className="flex gap-2 items-center">
           {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           <div className="flex gap-1 border rounded-md p-0.5">
             <Button size="sm" variant={range === 'week' ? 'default' : 'ghost'} className="h-7 text-xs" onClick={() => setRange('week')} disabled={loading}>
-              This week
+              {t('analytics.thisWeek')}
             </Button>
             <Button size="sm" variant={range === 'month' ? 'default' : 'ghost'} className="h-7 text-xs" onClick={() => setRange('month')} disabled={loading}>
-              This month
+              {t('analytics.thisMonth')}
             </Button>
           </div>
         </div>
@@ -87,7 +91,7 @@ function AnalyticsContent() {
         <Card>
           <CardContent className="p-6 flex items-center justify-between rounded-xl bg-gradient-to-br from-card to-secondary/10">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">Average focus score</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">{t('analytics.averageFocus')}</p>
               <div className="flex items-end gap-3 mb-2">
                 <p className="text-6xl font-black text-primary tracking-tighter" data-testid="period-focus-score">{formatScore(r.focus_score)}</p>
                 {change != null && (
@@ -100,12 +104,12 @@ function AnalyticsContent() {
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                Planned {formatHours(r.planned_minutes)} · Done {formatHours(r.completed_minutes)} · Deep work {formatHours(r.deep_work_minutes)}
+                {t('analytics.summary', { planned: hours(r.planned_minutes), done: hours(r.completed_minutes), deep: hours(r.deep_work_minutes) })}
               </p>
-              <p className="text-sm text-muted-foreground">Streak: {r.streak} {r.streak === 1 ? 'day' : 'days'}</p>
+              <p className="text-sm text-muted-foreground">{t('analytics.streak', { count: r.streak })}</p>
             </div>
             <div className="hidden sm:block">
-              <ChartImage image={r.charts.focus_gauge.image} alt="Focus Gauge" className="h-28 object-contain drop-shadow-sm mix-blend-multiply dark:mix-blend-screen" />
+              <ChartImage image={r.charts.focus_gauge.image} alt={t('analytics.alt.gauge')} className="h-28 object-contain drop-shadow-sm mix-blend-multiply dark:mix-blend-screen" />
             </div>
           </CardContent>
         </Card>
@@ -115,7 +119,7 @@ function AnalyticsContent() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse"></span>
-              Detected patterns
+              {t('analytics.patterns')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -135,7 +139,7 @@ function AnalyticsContent() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Completion rate (daily)</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('analytics.completionChart')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -144,7 +148,7 @@ function AnalyticsContent() {
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickMargin={8} />
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} tickFormatter={(v) => `${v}%`} width={40} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ stroke: 'hsl(var(--muted))', strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="completion" name="Completion %" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey="completion" name={t('analytics.completionSeries')} stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -152,7 +156,7 @@ function AnalyticsContent() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Deep work hours (daily)</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('analytics.deepChart')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -161,7 +165,7 @@ function AnalyticsContent() {
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickMargin={8} />
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={40} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }} />
-                <Bar dataKey="deepHours" name="Deep Work (h)" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="deepHours" name={t('analytics.deepSeries')} fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -169,32 +173,32 @@ function AnalyticsContent() {
       </div>
 
       <div className="pt-6">
-        <h2 className="text-lg font-bold mb-4 tracking-tight">Advanced visualizations</h2>
+        <h2 className="text-lg font-bold mb-4 tracking-tight">{t('analytics.advanced')}</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <Card className="overflow-hidden md:col-span-2">
             <CardHeader className="pb-0 pt-4 px-4 bg-muted/20">
-              <CardTitle className="text-sm font-semibold">Focus heatmap ({f.start_date} – {f.end_date})</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('analytics.heatmap', { start: f.start_date, end: f.end_date })}</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <ChartImage image={f.charts.focus_heatmap.image} alt="Focus Heatmap" className="w-full h-auto" />
+              <ChartImage image={f.charts.focus_heatmap.image} alt={t('analytics.alt.heatmap')} className="w-full h-auto" />
             </CardContent>
           </Card>
 
           <Card className="overflow-hidden">
             <CardHeader className="pb-0 pt-4 px-4 bg-muted/20">
-              <CardTitle className="text-sm font-semibold">Time distribution</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('analytics.distribution')}</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <ChartImage image={r.charts.category_distribution.image} alt="Category Distribution" className="w-full h-auto p-4" />
+              <ChartImage image={r.charts.category_distribution.image} alt={t('analytics.alt.distribution')} className="w-full h-auto p-4" />
             </CardContent>
           </Card>
 
           <Card className="overflow-hidden">
             <CardHeader className="pb-0 pt-4 px-4 bg-muted/20">
-              <CardTitle className="text-sm font-semibold">Distraction trend</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t('analytics.distractionTrend')}</CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-white">
-              <ChartImage image={f.charts.distraction_trend.image} alt="Distraction Trend" className="w-full h-auto p-4" />
+              <ChartImage image={f.charts.distraction_trend.image} alt={t('analytics.alt.distractionTrend')} className="w-full h-auto p-4" />
             </CardContent>
           </Card>
         </div>

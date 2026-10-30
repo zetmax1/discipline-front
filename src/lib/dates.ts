@@ -1,4 +1,6 @@
 import { addDays, addWeeks, format, startOfWeek } from 'date-fns';
+import { formatDate, translate } from '@/i18n/translate';
+import type { Locale } from '@/i18n/locales';
 
 const WEEK_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -13,13 +15,15 @@ export interface WeekOption {
   isDefault: boolean;
 }
 
-/** This week and the next four (Mon–Sun, local time); next week is the default. */
-export function weekOptions(from: Date = new Date(), count = 5): WeekOption[] {
+/** This week and the next four (Mon–Sun, local time); next week is the default. Labels are in `locale`. */
+export function weekOptions(from: Date = new Date(), count = 5, locale: Locale = 'en'): WeekOption[] {
   const thisMonday = startOfWeek(from, { weekStartsOn: 1 });
+  const day = (d: Date) => formatDate(locale, d, { month: 'short', day: 'numeric' });
   return Array.from({ length: count }, (_, i) => {
     const monday = addWeeks(thisMonday, i);
-    const range = `${format(monday, 'MMM d')} – ${format(addDays(monday, 6), 'MMM d')}`;
-    const label = i === 0 ? `This week (${range})` : i === 1 ? `Next week (${range})` : range;
+    const range = `${day(monday)} – ${day(addDays(monday, 6))}`;
+    const label = i === 0 ? translate(locale, 'schedule.thisWeek', { range })
+      : i === 1 ? translate(locale, 'schedule.nextWeek', { range }) : range;
     return { weekStart: localDateString(monday), label, isDefault: i === 1 };
   });
 }

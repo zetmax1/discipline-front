@@ -13,6 +13,7 @@ import SmartSchedule from "./pages/SmartSchedule";
 import Vocabulary from "./pages/Vocabulary";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import { I18nProvider } from "./i18n";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ function LayoutWrapper() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <I18nProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -54,6 +56,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </I18nProvider>
   </QueryClientProvider>
 );
 

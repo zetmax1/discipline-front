@@ -1,3 +1,4 @@
+import type { TKey } from '@/i18n/translate';
 import { Task, VocabularyWord } from './types';
 import { localDateString } from './dates';
 
@@ -70,11 +71,12 @@ export const ANALYTICS_DATA = {
   disciplineTrend: +4,
 };
 
-export const COMPLETION_MESSAGES = [
-  'Block completed.',
-  'Execution logged.',
-  'Momentum confirmed.',
-  'Consistency building.',
-  'Progress recorded.',
-  'Focus protected.',
-];
+const COMPLETION_MESSAGES = [
+  'messages.completed.0', 'messages.completed.1', 'messages.completed.2',
+  'messages.completed.3', 'messages.completed.4', 'messages.completed.5',
+] as const satisfies readonly TKey[];
+
+/** A random encouraging message key for a completed block (text in src/i18n). */
+export function completionMessage(): TKey {
+  return COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)];
+}

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useLocalStorage } from './use-local-storage';
 import { SAMPLE_TASKS } from '@/lib/static-data';
 import { localDateString } from '@/lib/dates';
+import { useI18n } from '@/i18n';
 
 interface TasksResponse {
   tasks: Task[];
@@ -20,12 +21,10 @@ interface TaskResponse {
 
 export type AddResult = { ok: true } | { ok: false; error: string };
 
-function showWriteError(err: Error) {
-  toast.error(err.message || 'Could not save the change');
-}
-
 export function useTasks() {
   const queryClient = useQueryClient();
+  const { errorMessage } = useI18n();
+  const showWriteError = (err: Error) => toast.error(errorMessage(err, 'planner.saveFailed'));
   const today = localDateString();
   const loggedIn = isAuthenticated();
 
@@ -85,7 +84,7 @@ export function useTasks() {
         await addMutation.mutateAsync(task);
         return { ok: true };
       } catch (err) {
-        return { ok: false, error: err instanceof Error ? err.message : 'Could not add block' };
+        return { ok: false, error: errorMessage(err, 'planner.addFailed') };
       }
     } else {
       const newTask: Task = {

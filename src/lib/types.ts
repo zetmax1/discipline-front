@@ -51,13 +51,8 @@ export interface WeeklyGoals {
   restHours: number;
 }
 
-export const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  'deep-work': 'Deep Work',
-  'study': 'Study',
-  'admin': 'Admin',
-  'gym': 'Gym',
-  'rest': 'Rest',
-};
+/** Block categories in display order; names come from i18n (`categories.*`). */
+export const TASK_CATEGORIES: TaskCategory[] = ['deep-work', 'study', 'admin', 'gym', 'rest'];
 
 export const CATEGORY_COLORS: Record<TaskCategory | 'fixed', string> = {
   'deep-work': 'bg-primary/15 text-primary border-primary/30',

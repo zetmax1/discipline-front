@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { T } from '@/components/T';
 
 interface TurnstileRenderOptions {
   sitekey: string;
@@ -74,7 +75,7 @@ export function Turnstile({ onToken }: { onToken: (token: string | null) => void
   }, [siteKey]);
 
   if (!siteKey) {
-    return <p className="text-sm text-destructive">Verification is not configured. Please try again later.</p>;
+    return <p className="text-sm text-destructive"><T k="auth.captchaNotConfigured" /></p>;
   }
   return <div ref={ref} data-testid="turnstile" className="flex justify-center" />;
 }
