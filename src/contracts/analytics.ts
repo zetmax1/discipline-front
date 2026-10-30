@@ -98,17 +98,31 @@ export const ScheduleBlock = z.looseObject({
   startTime: z.string(),
   endTime: z.string(),
   day: z.string(),
+  // Translated block name; null for commitments (shown with their own name).
+  // Optional until every analytics deployment sends it (F12a).
+  label: z.enum(['deep_work', 'study', 'light_study', 'rest']).nullable().optional(),
+});
+
+/** One reasoning line as data: the UI translates it (`reasoning` is the English fallback). */
+export const ScheduleReason = z.looseObject({
+  code: z.enum(['learned', 'default', 'shortfall']),
+  category: z.string(),
+  start_time: z.string().nullable().optional(),
+  blocks: z.number().nullable().optional(),
+  minutes: z.number().nullable().optional(),
 });
 
 export const SmartScheduleResponse = z.looseObject({
   blocks: z.array(ScheduleBlock),
   reasoning: z.array(z.string()),
+  reasons: z.array(ScheduleReason).optional(), // optional until every analytics deployment sends it (F12a)
   placed_minutes: z.record(z.string(), z.number()),
   shortfall_minutes: z.record(z.string(), z.number()), // per category; > 0 = could not fit
 });
 
 export type DayMetrics = z.infer<typeof DayMetrics>;
 export type SmartScheduleResponse = z.infer<typeof SmartScheduleResponse>;
+export type ScheduleReason = z.infer<typeof ScheduleReason>;
 export type TodayResponse = z.infer<typeof TodayResponse>;
 export type PeriodReport = z.infer<typeof PeriodReport>;
 export type FocusPatternsResponse = z.infer<typeof FocusPatternsResponse>;

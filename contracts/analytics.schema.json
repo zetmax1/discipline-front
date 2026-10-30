@@ -663,6 +663,22 @@
             },
             "day": {
               "type": "string"
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "deep_work",
+                    "study",
+                    "light_study",
+                    "rest"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -680,6 +696,60 @@
         "type": "array",
         "items": {
           "type": "string"
+        }
+      },
+      "reasons": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "learned",
+                "default",
+                "shortfall"
+              ]
+            },
+            "category": {
+              "type": "string"
+            },
+            "start_time": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "blocks": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "minutes": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "code",
+            "category"
+          ],
+          "additionalProperties": {}
         }
       },
       "placed_minutes": {
