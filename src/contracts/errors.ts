@@ -16,6 +16,7 @@ export const ERROR_CODES = [
   'task_not_found', 'task_id_invalid', 'task_name_length', 'task_date_invalid', 'task_time_invalid',
   'task_end_before_start', 'task_category_invalid', 'task_energy_invalid', 'task_status_invalid',
   'task_distractions_invalid', 'task_overlap', 'plan_week_invalid',
+  'task_focus_rating_invalid', 'task_note_too_long', 'task_not_movable', 'idempotency_key_required',
   'word_not_found', 'word_id_invalid', 'date_invalid',
   'range_invalid', 'days_invalid', 'analytics_unavailable', 'analytics_validation_failed',
 ] as const;

@@ -1,0 +1,405 @@
+{
+  "block": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "number"
+      },
+      "name": {
+        "type": "string"
+      },
+      "category": {
+        "type": "string"
+      },
+      "date": {
+        "type": "string"
+      },
+      "startMin": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440
+      },
+      "endMin": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440
+      },
+      "startTime": {
+        "type": "string"
+      },
+      "endTime": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "planned",
+          "in_progress",
+          "done",
+          "partial",
+          "skipped",
+          "moved"
+        ]
+      },
+      "distractions": {
+        "type": "number"
+      },
+      "energy": {
+        "type": "number"
+      },
+      "actualStartMin": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "actualEndMin": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "focusRating": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "note": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "movedFromId": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "category",
+      "date",
+      "startMin",
+      "endMin",
+      "startTime",
+      "endTime",
+      "status",
+      "distractions",
+      "energy",
+      "actualStartMin",
+      "actualEndMin",
+      "focusRating",
+      "note",
+      "movedFromId"
+    ],
+    "additionalProperties": {}
+  },
+  "block_response": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "task": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "startMin": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          "endMin": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "in_progress",
+              "done",
+              "partial",
+              "skipped",
+              "moved"
+            ]
+          },
+          "distractions": {
+            "type": "number"
+          },
+          "energy": {
+            "type": "number"
+          },
+          "actualStartMin": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "actualEndMin": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "focusRating": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "movedFromId": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "date",
+          "startMin",
+          "endMin",
+          "startTime",
+          "endTime",
+          "status",
+          "distractions",
+          "energy",
+          "actualStartMin",
+          "actualEndMin",
+          "focusRating",
+          "note",
+          "movedFromId"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "required": [
+      "task"
+    ],
+    "additionalProperties": {}
+  },
+  "block_list": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "tasks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            },
+            "date": {
+              "type": "string"
+            },
+            "startMin": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "endMin": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "startTime": {
+              "type": "string"
+            },
+            "endTime": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "planned",
+                "in_progress",
+                "done",
+                "partial",
+                "skipped",
+                "moved"
+              ]
+            },
+            "distractions": {
+              "type": "number"
+            },
+            "energy": {
+              "type": "number"
+            },
+            "actualStartMin": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "actualEndMin": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "focusRating": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "note": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "movedFromId": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "category",
+            "date",
+            "startMin",
+            "endMin",
+            "startTime",
+            "endTime",
+            "status",
+            "distractions",
+            "energy",
+            "actualStartMin",
+            "actualEndMin",
+            "focusRating",
+            "note",
+            "movedFromId"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "count": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "tasks",
+      "count"
+    ],
+    "additionalProperties": {}
+  }
+}
