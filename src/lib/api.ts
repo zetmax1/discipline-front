@@ -99,12 +99,31 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
   return res;
 }
 
+/** A non-2xx response: the server's `error` text, plus its status, body and Retry-After. */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly body: Record<string, unknown>;
+  /** Seconds from the Retry-After header (429), if any. */
+  readonly retryAfter?: number;
+
+  constructor(status: number, body: Record<string, unknown>, retryAfter?: number) {
+    super(typeof body.error === 'string' && body.error ? body.error : 'Request failed');
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+    this.retryAfter = retryAfter;
+  }
+}
+
+async function toApiError(res: Response): Promise<ApiError> {
+  const body = await res.json().catch(() => ({ error: 'Request failed' }));
+  const retry = Number(res.headers.get('Retry-After'));
+  return new ApiError(res.status, body ?? {}, Number.isFinite(retry) && retry > 0 ? retry : undefined);
+}
+
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await apiFetch(path);
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
@@ -113,10 +132,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     method: 'POST',
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
@@ -125,38 +141,33 @@ export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
     method: 'PUT',
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
 export async function apiDelete<T>(path: string): Promise<T> {
   const res = await apiFetch(path, { method: 'DELETE' });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
 // --- Auth API ---
 
-export async function loginApi(email: string, password: string) {
+/** turnstileToken is sent once the server has answered captchaRequired. */
+export async function loginApi(email: string, password: string, turnstileToken?: string) {
   const data = await apiPost<{ token: string; user: AuthUser }>(
     '/auth/login',
-    { email, password }
+    turnstileToken ? { email, password, turnstileToken } : { email, password }
   );
   setToken(data.token);
   setUser(data.user);
   return data;
 }
 
-export async function registerApi(name: string, email: string, password: string) {
+export async function registerApi(name: string, email: string, password: string, turnstileToken: string) {
   const data = await apiPost<{ token: string; user: AuthUser }>(
     '/auth/register',
-    { name, email, password }
+    { name, email, password, turnstileToken }
   );
   setToken(data.token);
   setUser(data.user);

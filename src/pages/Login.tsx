@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import { Brain, ArrowRight, Loader2, Play } from 'lucide-react';
-import { setDemoMode } from '@/lib/api';
+import { ApiError, setDemoMode } from '@/lib/api';
+import { Turnstile } from '@/components/Turnstile';
 import { passwordPolicyError, PASSWORD_POLICY_HINT } from '@/lib/password-policy';
 
 export default function Login() {
@@ -15,14 +16,27 @@ export default function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Registration always needs a captcha; login only after the server asks for one.
+  const [loginCaptcha, setLoginCaptcha] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const { login, register, loading, error } = useAuth();
   const navigate = useNavigate();
+  const showCaptcha = mode === 'register' || loginCaptcha;
+
+  // Turnstile tokens are single-use: drop the token and remount the widget.
+  const resetCaptcha = () => {
+    setCaptchaToken(null);
+    setCaptchaKey(k => k + 1);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (mode === 'login') {
-        await login(email, password);
+        const token = loginCaptcha ? captchaToken ?? undefined : undefined;
+        if (loginCaptcha) resetCaptcha();
+        await login(email, password, token);
         toast('Welcome back!');
       } else {
         if (!name.trim()) {
@@ -34,13 +48,26 @@ export default function Login() {
           toast.error(policyError);
           return;
         }
-        await register(name.trim(), email, password);
+        if (!captchaToken) {
+          toast.error('Please complete the verification.');
+          return;
+        }
+        const token = captchaToken;
+        resetCaptcha();
+        await register(name.trim(), email, password, token);
         toast('Account created successfully!');
       }
       navigate('/');
     } catch (err) {
+      if (err instanceof ApiError && err.body.captchaRequired === true && mode === 'login') {
+        setLoginCaptcha(true);
+      }
       // Use the error just caught; the hook's `error` state is from the previous render.
-      toast.error(err instanceof Error && err.message ? err.message : 'Authentication failed');
+      let message = err instanceof Error && err.message ? err.message : 'Authentication failed';
+      if (err instanceof ApiError && err.status === 429 && err.retryAfter) {
+        message += ` Try again in ${err.retryAfter} s.`;
+      }
+      toast.error(message);
     }
   };
 
@@ -131,6 +158,8 @@ export default function Login() {
                 )}
               </div>
 
+              {showCaptcha && <Turnstile key={`${mode}-${captchaKey}`} onToken={setCaptchaToken} />}
+
               {error && (
                 <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">
                   {error}
@@ -140,7 +169,7 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full h-11 text-sm font-semibold"
-                disabled={loading}
+                disabled={loading || (showCaptcha && !captchaToken)}
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -162,6 +191,8 @@ export default function Login() {
                   setName('');
                   setEmail('');
                   setPassword('');
+                  setLoginCaptcha(false);
+                  resetCaptcha();
                 }}
                 className="ml-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
               >
