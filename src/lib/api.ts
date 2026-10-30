@@ -1,6 +1,7 @@
 // API client for the Discipline backend
 import type { z } from 'zod/v4';
 import { FocusPatternsResponse, PeriodReport, SmartScheduleResponse, TodayResponse } from '@/contracts/analytics';
+import { FeaturesResponse } from '@/contracts/features';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // --- Token management ---
@@ -216,7 +217,7 @@ export async function adjustDistractionsApi(id: number | string, delta: 1 | -1) 
 
 // --- Analytics API ---
 
-/** Thrown when a response does not match the contract in src/contracts/analytics.ts. */
+/** Thrown when a response does not match its contract in src/contracts/. */
 export class ContractError extends Error {
   constructor(what: string, issues: string) {
     super(`Unexpected response from ${what}: ${issues}`);
@@ -245,4 +246,11 @@ export async function fetchToday(): Promise<TodayResponse> {
 
 export async function fetchFocusPatterns(days: number = 30): Promise<FocusPatternsResponse> {
   return apiGet<unknown>(`/analytics/focus-patterns?days=${days}`).then(parseWith(FocusPatternsResponse, 'focus patterns'));
+}
+
+// --- Feature flags ---
+
+/** Ids of the features switched on on the server (FEATURE_<id>=true). */
+export async function fetchFeatures(): Promise<FeaturesResponse> {
+  return apiGet<unknown>('/features').then(parseWith(FeaturesResponse, 'features'));
 }

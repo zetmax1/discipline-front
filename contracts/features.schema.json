@@ -1,0 +1,19 @@
+{
+  "features": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "features": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^F[0-9]+[A-Z]?$"
+        }
+      }
+    },
+    "required": [
+      "features"
+    ],
+    "additionalProperties": {}
+  }
+}
