@@ -1,6 +1,8 @@
 export type TaskCategory = 'deep-work' | 'study' | 'admin' | 'gym' | 'rest';
 
-export type TaskStatus = 'pending' | 'completed' | 'skipped';
+import type { BlockStatus } from '@/contracts/blocks';
+
+export type TaskStatus = BlockStatus;
 
 export interface Task {
   id: string;
@@ -12,6 +14,14 @@ export interface Task {
   distractions: number;
   energy: number; // 1-5
   date: string; // YYYY-MM-DD
+  // Block lifecycle (F1); absent in demo data.
+  startMin?: number;
+  endMin?: number;
+  actualStartMin?: number | null;
+  actualEndMin?: number | null;
+  focusRating?: number | null;
+  note?: string | null;
+  movedFromId?: number | null;
 }
 
 export interface VocabularyWord {

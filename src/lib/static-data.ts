@@ -5,12 +5,12 @@ import { localDateString } from './dates';
 const today = localDateString();
 
 export const SAMPLE_TASKS: Task[] = [
-  { id: '1', name: 'Morning routine', category: 'deep-work', startTime: '08:00', endTime: '09:30', status: 'pending', distractions: 0, energy: 5, date: today },
-  { id: '2', name: 'Project work', category: 'deep-work', startTime: '10:00', endTime: '12:00', status: 'pending', distractions: 0, energy: 4, date: today },
-  { id: '3', name: 'Lunch break', category: 'rest', startTime: '12:00', endTime: '13:00', status: 'pending', distractions: 0, energy: 3, date: today },
-  { id: '4', name: 'Afternoon tasks', category: 'admin', startTime: '13:00', endTime: '15:00', status: 'pending', distractions: 1, energy: 3, date: today },
-  { id: '5', name: 'Exercise', category: 'gym', startTime: '16:00', endTime: '17:00', status: 'pending', distractions: 0, energy: 4, date: today },
-  { id: '6', name: 'Evening review', category: 'study', startTime: '19:00', endTime: '20:00', status: 'pending', distractions: 0, energy: 2, date: today },
+  { id: '1', name: 'Morning routine', category: 'deep-work', startTime: '08:00', endTime: '09:30', status: 'planned', distractions: 0, energy: 5, date: today },
+  { id: '2', name: 'Project work', category: 'deep-work', startTime: '10:00', endTime: '12:00', status: 'planned', distractions: 0, energy: 4, date: today },
+  { id: '3', name: 'Lunch break', category: 'rest', startTime: '12:00', endTime: '13:00', status: 'planned', distractions: 0, energy: 3, date: today },
+  { id: '4', name: 'Afternoon tasks', category: 'admin', startTime: '13:00', endTime: '15:00', status: 'planned', distractions: 1, energy: 3, date: today },
+  { id: '5', name: 'Exercise', category: 'gym', startTime: '16:00', endTime: '17:00', status: 'planned', distractions: 0, energy: 4, date: today },
+  { id: '6', name: 'Evening review', category: 'study', startTime: '19:00', endTime: '20:00', status: 'planned', distractions: 0, energy: 2, date: today },
 ];
 
 export const VOCABULARY_WORDS: VocabularyWord[] = [

@@ -5,7 +5,7 @@ import Dashboard from './Dashboard';
 import { day, jsonResponse } from '@/test/fixtures/analytics';
 
 // Today's tasks would score high under the old client-side formula; the page must show the server's value.
-const tasks = [{ id: 1, name: 'Focus', category: 'deep-work', startTime: '09:00', endTime: '12:00', status: 'completed', distractions: 0, energy: 3, date: '2026-10-29' }];
+const tasks = [{ id: 1, name: 'Focus', category: 'deep-work', startTime: '09:00', endTime: '12:00', status: 'done', distractions: 0, energy: 3, date: '2026-10-29' }];
 
 function mockApi(today: unknown) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {

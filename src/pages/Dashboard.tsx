@@ -29,7 +29,7 @@ export default function Dashboard() {
     enabled: loggedIn,
   });
 
-  const done = todayTasks.filter(t => t.status === 'completed').length;
+  const done = todayTasks.filter(t => t.status === 'done').length;
   const total = todayTasks.length;
   const unavailable = !loggedIn ? t('dashboard.demoUnavailable') : todayError ? t('dashboard.metricsError') : null;
   const pct = (r: number | null | undefined) => formatPercent(r, locale);
@@ -53,7 +53,7 @@ export default function Dashboard() {
   ];
 
   const handleComplete = (id: string | number) => {
-    updateTask(id, { status: 'completed' });
+    updateTask(id, { status: 'done' });
     toast(t(completionMessage()));
   };
 
@@ -94,16 +94,16 @@ export default function Dashboard() {
               <div
                 key={task.id}
                 className={`flex items-center gap-3 p-3 rounded-md border text-sm transition-opacity ${
-                  task.status === 'completed' ? 'opacity-60' : ''
+                  task.status === 'done' ? 'opacity-60' : ''
                 } ${task.status === 'skipped' ? 'opacity-30' : ''}`}
               >
                 <span className="text-xs text-muted-foreground font-mono w-24 shrink-0">
                   {task.startTime} – {task.endTime}
                 </span>
                 <div className={`w-1 h-8 rounded-full`} style={{ backgroundColor: `hsl(var(--category-${task.category}))` }} />
-                <span className={`flex-1 ${task.status === 'completed' ? 'line-through' : ''}`}>{task.name}</span>
+                <span className={`flex-1 ${task.status === 'done' ? 'line-through' : ''}`}>{task.name}</span>
                 <Badge variant="outline" className="text-[10px]">{categoryLabel(task.category, locale)}</Badge>
-                {task.status === 'completed' && <CheckCircle2 className="h-4 w-4 text-accent" />}
+                {task.status === 'done' && <CheckCircle2 className="h-4 w-4 text-accent" />}
               </div>
             ))}
           </div>
@@ -121,13 +121,13 @@ export default function Dashboard() {
               {todayTasks.map(task => (
                 <label key={task.id} className="flex items-center gap-3 cursor-pointer group">
                   <Checkbox
-                    checked={task.status === 'completed'}
+                    checked={task.status === 'done'}
                     onCheckedChange={() => {
-                      if (task.status !== 'completed') handleComplete(task.id);
-                      else updateTask(task.id, { status: 'pending' });
+                      if (task.status !== 'done') handleComplete(task.id);
+                      else updateTask(task.id, { status: 'planned' });
                     }}
                   />
-                  <span className={`text-sm flex-1 ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+                  <span className={`text-sm flex-1 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
                     {task.name}
                   </span>
                   <Badge variant="secondary" className="text-[10px]">{categoryLabel(task.category, locale)}</Badge>

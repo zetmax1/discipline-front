@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useLocalStorage } from './use-local-storage';
 import { SAMPLE_TASKS } from '@/lib/static-data';
 import { localDateString } from '@/lib/dates';
+import { normalizeStatus, visibleBlocks } from '@/lib/blocks';
 import { useI18n } from '@/i18n';
 
 interface TasksResponse {
@@ -39,10 +40,10 @@ export function useTasks() {
     staleTime: 30_000,
   });
 
-  const tasks = loggedIn ? (data?.tasks ?? []) : localTasks;
-  const todayTasks = loggedIn
-    ? tasks
-    : localTasks.filter(t => t.date === today);
+  // Demo data saved before F1 uses the old status names.
+  const demoTasks = localTasks.map(t => ({ ...t, status: normalizeStatus(t.status) }));
+  const tasks = visibleBlocks(loggedIn ? (data?.tasks ?? []) : demoTasks);
+  const todayTasks = loggedIn ? tasks : tasks.filter(t => t.date === today);
 
   // Task writes change the task list and today's server-side metrics.
   const invalidateTaskViews = () => {
@@ -90,7 +91,7 @@ export function useTasks() {
       const newTask: Task = {
         ...task,
         id: crypto.randomUUID(),
-        status: 'pending',
+        status: 'planned',
         distractions: 0,
       };
       setLocalTasks(prev => [...prev, newTask]);

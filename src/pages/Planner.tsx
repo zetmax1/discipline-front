@@ -12,6 +12,7 @@ import { completionMessage } from '@/lib/static-data';
 import { categoryLabel } from '@/lib/smart-schedule';
 import { useI18n } from '@/i18n';
 import { localDateString } from '@/lib/dates';
+import { isOpen } from '@/lib/blocks';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
 
@@ -79,7 +80,7 @@ export default function Planner() {
   };
 
   const handleComplete = (id: string | number) => {
-    updateTask(id, { status: 'completed' });
+    updateTask(id, { status: 'done' });
     toast(t(completionMessage()));
   };
 
@@ -189,13 +190,13 @@ export default function Planner() {
                         key={task.id}
                         className={`flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 rounded border text-sm transition-all ${
                           CATEGORY_COLORS[task.category]
-                        } ${task.status === 'completed' ? 'opacity-60' : ''} ${task.status === 'skipped' ? 'opacity-30 line-through' : ''}`}
+                        } ${task.status === 'done' || task.status === 'partial' ? 'opacity-60' : ''} ${task.status === 'skipped' ? 'opacity-30 line-through' : ''}`}
                       >
                         <span className="flex-1 min-w-[7rem] font-medium break-words">{task.name}</span>
                         <span className="text-[10px] font-mono">{task.startTime}–{task.endTime}</span>
 
                         {/* Distraction counter */}
-                        {task.status === 'pending' && (
+                        {isOpen(task.status) && (
                           <div className="flex items-center gap-1 border-l pl-2 ml-1">
                             <button onClick={() => adjustDistractions(task.id, -1)} className="p-0.5 hover:bg-background/50 rounded" aria-label={t('planner.distractionLess')}>
                               <Minus className="h-3 w-3" />
@@ -207,7 +208,7 @@ export default function Planner() {
                           </div>
                         )}
 
-                        {task.status === 'pending' && (
+                        {isOpen(task.status) && (
                           <>
                             <button onClick={() => handleComplete(task.id)} className="p-1 hover:bg-background/50 rounded" title={t('planner.complete')} aria-label={t('planner.complete')}>
                               <CheckCircle2 className="h-4 w-4 text-accent" />
