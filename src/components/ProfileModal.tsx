@@ -67,8 +67,8 @@ export function ProfileModal({ open, onClose }: Props) {
       applyProfileResponse(res);
       toast.success('Profile updated successfully');
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Update failed');
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Update failed');
     } finally {
       setLoading(false);
     }
