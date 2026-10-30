@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { I18nProvider } from "./i18n";
 import { ThemeProvider } from "./theme/ThemeProvider";
+import { ShellSync } from "./pwa/ShellSync";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <I18nProvider>
     <ThemeProvider>
+    <ShellSync />
     <TooltipProvider>
       <Toaster />
       <Sonner />

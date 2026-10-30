@@ -107,9 +107,9 @@ export default function Vocabulary() {
 
       {/* All Words with Filter + Pagination */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t('vocabulary.allWords')}</h2>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {filters.map(f => (
               <Button
                 key={f.key}

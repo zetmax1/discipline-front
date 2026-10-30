@@ -113,3 +113,17 @@
     font-family: 'JetBrains Mono', monospace;
   }
 }
+
+/* F12a phone shell: every control is at least 44×44 px below 768 px (M1: touch targets).
+   Only while F12A is on (ShellSync sets data-shell); a checkbox counts through its label row. */
+@media (max-width: 767px) {
+  html[data-shell="f12a"] :is(button, a[href], select, input:not([type="checkbox"], [type="radio"], [type="hidden"]), [role="button"], [role="combobox"]):not([role="checkbox"]) {
+    min-height: 44px;
+  }
+  html[data-shell="f12a"] :is(button, [role="button"], [role="combobox"]):not([role="checkbox"]) {
+    min-width: 44px;
+  }
+  html[data-shell="f12a"] label:has([role="checkbox"]) {
+    min-height: 44px;
+  }
+}

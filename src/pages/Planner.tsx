@@ -183,15 +183,15 @@ export default function Planner() {
                   <div className="w-16 shrink-0 py-2 text-xs text-muted-foreground font-mono">
                     {String(hour).padStart(2, '0')}:00
                   </div>
-                  <div className="flex-1 py-1 space-y-1">
+                  <div className="flex-1 min-w-0 py-1 space-y-1">
                     {blocks.map(task => (
                       <div
                         key={task.id}
-                        className={`flex items-center gap-2 px-3 py-2 rounded border text-sm transition-all ${
+                        className={`flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 rounded border text-sm transition-all ${
                           CATEGORY_COLORS[task.category]
                         } ${task.status === 'completed' ? 'opacity-60' : ''} ${task.status === 'skipped' ? 'opacity-30 line-through' : ''}`}
                       >
-                        <span className="flex-1 font-medium">{task.name}</span>
+                        <span className="flex-1 min-w-[7rem] font-medium break-words">{task.name}</span>
                         <span className="text-[10px] font-mono">{task.startTime}–{task.endTime}</span>
 
                         {/* Distraction counter */}
