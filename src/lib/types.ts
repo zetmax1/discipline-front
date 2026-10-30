@@ -56,9 +56,9 @@ export const TASK_CATEGORIES: TaskCategory[] = ['deep-work', 'study', 'admin', '
 
 export const CATEGORY_COLORS: Record<TaskCategory | 'fixed', string> = {
   'deep-work': 'bg-primary/15 text-primary border-primary/30',
-  'study': 'bg-blue-100 text-blue-700 border-blue-200',
+  'study': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-900',
   'admin': 'bg-muted text-muted-foreground border-border',
   'gym': 'bg-accent/15 text-accent border-accent/30',
-  'rest': 'bg-amber-50 text-amber-700 border-amber-200',
+  'rest': 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-900',
   'fixed': 'bg-secondary text-secondary-foreground border-border',
 };

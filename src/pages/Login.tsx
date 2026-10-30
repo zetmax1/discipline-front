@@ -10,6 +10,7 @@ import { Brain, ArrowRight, Loader2, Play } from 'lucide-react';
 import { ApiError, setDemoMode } from '@/lib/api';
 import { Turnstile } from '@/components/Turnstile';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeSwitcher } from '@/theme/ThemeSwitcher';
 import { passwordPolicyError, passwordPolicyHint } from '@/lib/password-policy';
 import { useI18n } from '@/i18n';
 
@@ -84,6 +85,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="absolute top-4 right-4 z-20 flex gap-2">
         <LanguageSwitcher />
+        <ThemeSwitcher />
       </div>
       {/* Background pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

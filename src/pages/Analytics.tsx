@@ -148,7 +148,7 @@ function AnalyticsContent() {
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickMargin={8} />
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} tickFormatter={(v) => `${v}%`} width={40} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ stroke: 'hsl(var(--muted))', strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="completion" name={t('analytics.completionSeries')} stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey="completion" name={t('analytics.completionSeries')} stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--card))' }} activeDot={{ r: 6, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

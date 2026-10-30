@@ -14,6 +14,7 @@ import Vocabulary from "./pages/Vocabulary";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { I18nProvider } from "./i18n";
+import { ThemeProvider } from "./theme/ThemeProvider";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ function LayoutWrapper() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <I18nProvider>
+    <ThemeProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -56,6 +58,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
     </I18nProvider>
   </QueryClientProvider>
 );

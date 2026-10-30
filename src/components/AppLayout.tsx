@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { ThemeSwitcher } from '@/theme/ThemeSwitcher';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
             <div className="ml-auto flex items-center gap-2">
               <LanguageSwitcher />
+              <ThemeSwitcher />
             </div>
           </header>
           <div className="flex-1 p-6 overflow-auto">
