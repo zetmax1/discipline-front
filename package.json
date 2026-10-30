@@ -13,10 +13,12 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
     "contract:update": "UPDATE_CONTRACT=1 vitest run src/contracts",
     "audit:check": "node scripts/audit-check.mjs",
     "secrets": "docker run --rm -u \"$(id -u):$(id -g)\" -v \"$PWD:/repo:ro\" ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git --no-banner --redact --exit-code 1 /repo",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run audit:check && npm run secrets"
+    "check": "npm run typecheck && npm run lint && npm test && npm run e2e && npm run build && npm run audit:check && npm run secrets"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -73,6 +75,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "1.64.1",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
