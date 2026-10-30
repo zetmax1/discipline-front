@@ -1,0 +1,61 @@
+{
+  "error": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "error": {
+        "type": "string"
+      },
+      "code": {
+        "type": "string",
+        "enum": [
+          "internal_error",
+          "not_found",
+          "method_not_allowed",
+          "body_too_large",
+          "origin_not_allowed",
+          "rate_limited",
+          "service_unavailable",
+          "validation_failed",
+          "auth_required",
+          "token_invalid",
+          "forbidden",
+          "user_not_found",
+          "invalid_credentials",
+          "captcha_required",
+          "login_throttled",
+          "email_taken",
+          "password_too_short",
+          "password_too_long",
+          "current_password_required",
+          "current_password_incorrect",
+          "invalid_timezone",
+          "task_not_found",
+          "task_id_invalid",
+          "task_name_length",
+          "task_date_invalid",
+          "task_time_invalid",
+          "task_end_before_start",
+          "task_category_invalid",
+          "task_energy_invalid",
+          "task_status_invalid",
+          "task_distractions_invalid",
+          "task_overlap",
+          "plan_week_invalid",
+          "word_not_found",
+          "word_id_invalid",
+          "date_invalid",
+          "range_invalid",
+          "days_invalid",
+          "analytics_unavailable",
+          "analytics_validation_failed"
+        ]
+      }
+    },
+    "required": [
+      "error",
+      "code"
+    ],
+    "additionalProperties": {}
+  }
+}
