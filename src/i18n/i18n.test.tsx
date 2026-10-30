@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { translate, formatDate } from './translate';
+import { translate, formatDate, formatNumber, weekdayName } from './translate';
 import { I18nProvider, useI18n } from './index';
 import { jsonResponse } from '@/test/fixtures/analytics';
 import { ApiError } from '@/lib/api';
@@ -19,6 +19,24 @@ describe('translate', () => {
     expect(translate('ru', 'planner.blocks', { count: 3 })).toBe('3 блока');
     expect(translate('ru', 'planner.blocks', { count: 5 })).toBe('5 блоков');
     expect(translate('uz', 'planner.blocks', { count: 5 })).toBe('5 ta blok');
+  });
+});
+
+describe('Uzbek dates and numbers (browsers often lack Uzbek Intl data, so these are built in)', () => {
+  const fri = new Date(2026, 9, 30, 23, 59);
+  it('formats dates the Uzbek way', () => {
+    expect(formatDate('uz', fri, { weekday: 'short', month: 'short', day: 'numeric' })).toBe('Jum, 30-okt');
+    expect(formatDate('uz', fri, { month: 'long', day: 'numeric' })).toBe('30-oktabr');
+    expect(formatDate('uz', fri, { weekday: 'long' })).toBe('juma');
+    expect(formatDate('uz', fri, { year: 'numeric', month: 'short', day: 'numeric' })).toBe('30-okt, 2026');
+    expect(weekdayName('uz', 'Monday')).toBe('dushanba');
+    expect(weekdayName('uz', 'Sunday', 'short')).toBe('Yak');
+  });
+
+  it('uses a decimal comma and a space between thousands', () => {
+    expect(formatNumber('uz', 1.5, { maximumFractionDigits: 1 })).toBe('1,5');
+    expect(formatNumber('uz', 12345)).toBe('12\u00a0345');
+    expect(formatNumber('uz', 0.5, { style: 'percent' })).toBe('50%');
   });
 });
 
