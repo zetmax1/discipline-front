@@ -41,6 +41,12 @@ npm run dev
 
 You can edit files directly through the GitHub interface or use GitHub Codespaces for a full development environment in the browser.
 
+## Checks
+
+`npm run check` runs tsc, eslint, vitest (including the analytics contract test), the
+production build, `npm audit --omit=dev` against `audit-allowlist.json` (`audit:check`) and
+gitleaks over the full history (`secrets`, needs Docker).
+
 ## Technology Stack
 
 This project is built with modern web technologies:
