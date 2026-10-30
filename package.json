@@ -9,9 +9,14 @@
     "build:dev": "vite build --mode development",
     "start": "serve dist -s -l tcp://0.0.0.0:$PORT",
     "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "contract:update": "UPDATE_CONTRACT=1 vitest run src/contracts",
+    "audit:check": "node scripts/audit-check.mjs",
+    "secrets": "docker run --rm -u \"$(id -u):$(id -g)\" -v \"$PWD:/repo:ro\" ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git --no-banner --redact --exit-code 1 /repo",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run audit:check && npm run secrets"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -42,6 +47,7 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@sentry/react": "11.7.0",
     "@tanstack/react-query": "^5.83.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -56,9 +62,9 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.61.1",
     "react-resizable-panels": "^2.1.9",
-    "react-router-dom": "^6.30.1",
+    "react-router-dom": "^6.30.6",
     "recharts": "^2.15.4",
-    "serve": "^14.2.5",
+    "serve": "^14.2.6",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
@@ -81,11 +87,14 @@
     "globals": "^15.15.0",
     "jsdom": "^20.0.3",
     "lovable-tagger": "^1.1.13",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.30",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^5.4.19",
+    "vite": "^6.4.5",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "compression": "1.8.2"
   }
 }

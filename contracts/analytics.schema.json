@@ -1,0 +1,712 @@
+{
+  "today": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "date": {
+        "type": "string"
+      },
+      "planned_minutes": {
+        "type": "number"
+      },
+      "completed_minutes": {
+        "type": "number"
+      },
+      "due_planned_minutes": {
+        "type": "number"
+      },
+      "due_completed_minutes": {
+        "type": "number"
+      },
+      "deep_work_minutes": {
+        "type": "number"
+      },
+      "distractions": {
+        "type": "number"
+      },
+      "completion": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "deep": {
+        "type": "number"
+      },
+      "distraction": {
+        "type": "number"
+      },
+      "focus_score": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "daily_deep_work_target_minutes": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "date",
+      "planned_minutes",
+      "completed_minutes",
+      "due_planned_minutes",
+      "due_completed_minutes",
+      "deep_work_minutes",
+      "distractions",
+      "completion",
+      "deep",
+      "distraction",
+      "focus_score",
+      "daily_deep_work_target_minutes"
+    ],
+    "additionalProperties": {}
+  },
+  "period_report": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "range": {
+        "type": "string",
+        "enum": [
+          "week",
+          "month"
+        ]
+      },
+      "start_date": {
+        "type": "string"
+      },
+      "end_date": {
+        "type": "string"
+      },
+      "period_end_date": {
+        "type": "string"
+      },
+      "focus_score": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "planned_minutes": {
+        "type": "number"
+      },
+      "completed_minutes": {
+        "type": "number"
+      },
+      "deep_work_minutes": {
+        "type": "number"
+      },
+      "streak": {
+        "type": "number"
+      },
+      "days": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "planned_minutes": {
+              "type": "number"
+            },
+            "completed_minutes": {
+              "type": "number"
+            },
+            "due_planned_minutes": {
+              "type": "number"
+            },
+            "due_completed_minutes": {
+              "type": "number"
+            },
+            "deep_work_minutes": {
+              "type": "number"
+            },
+            "distractions": {
+              "type": "number"
+            },
+            "completion": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "deep": {
+              "type": "number"
+            },
+            "distraction": {
+              "type": "number"
+            },
+            "focus_score": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "date",
+            "planned_minutes",
+            "completed_minutes",
+            "due_planned_minutes",
+            "due_completed_minutes",
+            "deep_work_minutes",
+            "distractions",
+            "completion",
+            "deep",
+            "distraction",
+            "focus_score"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "category_minutes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string"
+            },
+            "minutes": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "category",
+            "minutes"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "comparison": {
+        "type": "object",
+        "properties": {
+          "previous_focus_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "previous_focus_score",
+          "change"
+        ],
+        "additionalProperties": {}
+      },
+      "patterns": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "insufficient_data": {
+                "type": "boolean",
+                "const": true
+              },
+              "days_needed": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "insufficient_data",
+              "days_needed"
+            ],
+            "additionalProperties": {}
+          },
+          {
+            "type": "object",
+            "properties": {
+              "insufficient_data": {
+                "type": "boolean",
+                "const": false
+              },
+              "days_with_data": {
+                "type": "number"
+              },
+              "window_days": {
+                "type": "number"
+              },
+              "best_weekday": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "peak_hour": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "trend": {
+                "type": "string",
+                "enum": [
+                  "improving",
+                  "stable",
+                  "declining"
+                ]
+              },
+              "consistency_score": {
+                "type": "number"
+              },
+              "insights": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "insufficient_data",
+              "days_with_data",
+              "window_days",
+              "best_weekday",
+              "peak_hour",
+              "trend",
+              "consistency_score",
+              "insights"
+            ],
+            "additionalProperties": {}
+          }
+        ]
+      },
+      "charts": {
+        "type": "object",
+        "properties": {
+          "focus_gauge": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "score"
+                ],
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "image",
+              "data"
+            ],
+            "additionalProperties": {}
+          },
+          "category_distribution": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "value"
+                  ],
+                  "additionalProperties": {}
+                }
+              }
+            },
+            "required": [
+              "image",
+              "data"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "focus_gauge",
+          "category_distribution"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "required": [
+      "range",
+      "start_date",
+      "end_date",
+      "period_end_date",
+      "focus_score",
+      "planned_minutes",
+      "completed_minutes",
+      "deep_work_minutes",
+      "streak",
+      "days",
+      "category_minutes",
+      "comparison",
+      "patterns",
+      "charts"
+    ],
+    "additionalProperties": {}
+  },
+  "focus_patterns": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "start_date": {
+        "type": "string"
+      },
+      "end_date": {
+        "type": "string"
+      },
+      "days": {
+        "type": "number"
+      },
+      "heatmap": {
+        "type": "object",
+        "properties": {
+          "weekdays": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hours": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "weekdays",
+          "hours",
+          "values"
+        ],
+        "additionalProperties": {}
+      },
+      "productivity_by_weekday": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "day": {
+              "type": "string"
+            },
+            "focus_score": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "day",
+            "focus_score"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "deep_work_by_slot": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "minutes": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "label",
+            "minutes"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "distraction_trend": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "distractions_per_hour": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "date",
+            "distractions_per_hour"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "charts": {
+        "type": "object",
+        "properties": {
+          "focus_heatmap": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "weekdays": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "hours": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "values": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "weekdays",
+                  "hours",
+                  "values"
+                ],
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "image",
+              "data"
+            ],
+            "additionalProperties": {}
+          },
+          "distraction_trend": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "label",
+                    "value"
+                  ],
+                  "additionalProperties": {}
+                }
+              }
+            },
+            "required": [
+              "image",
+              "data"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "focus_heatmap",
+          "distraction_trend"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "required": [
+      "start_date",
+      "end_date",
+      "days",
+      "heatmap",
+      "productivity_by_weekday",
+      "deep_work_by_slot",
+      "distraction_trend",
+      "charts"
+    ],
+    "additionalProperties": {}
+  },
+  "smart_schedule": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "blocks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            },
+            "startTime": {
+              "type": "string"
+            },
+            "endTime": {
+              "type": "string"
+            },
+            "day": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "category",
+            "startTime",
+            "endTime",
+            "day"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "reasoning": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "placed_minutes": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "shortfall_minutes": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {
+          "type": "number"
+        }
+      }
+    },
+    "required": [
+      "blocks",
+      "reasoning",
+      "placed_minutes",
+      "shortfall_minutes"
+    ],
+    "additionalProperties": {}
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "_comment": "Advisories accepted after review (AUDIT_REPORT.md F-26). scripts/audit-check.mjs fails on anything else and on entries that stop matching. Re-review when upgrading react-router-dom to 7.x or zod to 4.x, which clears all three.",
+  "advisories": [
+    {
+      "id": "GHSA-wrjc-x8rr-h8h6",
+      "package": "react-router",
+      "reason": "Open redirect via a backslash in <Link>/useNavigate targets. The app only navigates to fixed in-app paths; no target comes from user input or the URL.",
+      "reviewed": "2026-10-30"
+    },
+    {
+      "id": "GHSA-337j-9hxr-rhxg",
+      "package": "react-router",
+      "reason": "Constructor injection in deserializeErrors() used when hydrating server-rendered data-router errors. The app is a client-only SPA (BrowserRouter, no SSR, no data router), so the function never runs.",
+      "reviewed": "2026-10-30"
+    },
+    {
+      "id": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "reason": "Memory exhaustion validating oversized constrained collections. zod only parses responses from our own API, whose sizes the server bounds; no user-supplied payload is validated with zod.",
+      "reviewed": "2026-10-30"
+    }
+  ]
+}

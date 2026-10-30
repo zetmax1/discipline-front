@@ -1,4 +1,6 @@
 // API client for the Discipline backend
+import type { z } from 'zod/v4';
+import { FocusPatternsResponse, PeriodReport, SmartScheduleResponse, TodayResponse } from '@/contracts/analytics';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // --- Token management ---
@@ -54,6 +56,19 @@ export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
+/** Demo mode without an account: server-backed features are unavailable. */
+export function isDemoOnly(): boolean {
+  return isDemoMode() && !isAuthenticated();
+}
+
+/**
+ * After a 401, signed-in users go to /login. Demo users stay put: /login would
+ * redirect them straight back to "/", looping between the two.
+ */
+export function shouldRedirectToLogin(pathname: string): boolean {
+  return !isDemoMode() && pathname !== '/login';
+}
+
 // --- HTTP helpers ---
 
 async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
@@ -76,7 +91,7 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
   if (res.status === 401) {
     removeToken();
     removeUser();
-    if (window.location.pathname !== '/login') {
+    if (shouldRedirectToLogin(window.location.pathname)) {
       window.location.href = '/login';
     }
   }
@@ -84,12 +99,31 @@ async function apiFetch(path: string, options: RequestInit = {}): Promise<Respon
   return res;
 }
 
+/** A non-2xx response: the server's `error` text, plus its status, body and Retry-After. */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly body: Record<string, unknown>;
+  /** Seconds from the Retry-After header (429), if any. */
+  readonly retryAfter?: number;
+
+  constructor(status: number, body: Record<string, unknown>, retryAfter?: number) {
+    super(typeof body.error === 'string' && body.error ? body.error : 'Request failed');
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+    this.retryAfter = retryAfter;
+  }
+}
+
+async function toApiError(res: Response): Promise<ApiError> {
+  const body = await res.json().catch(() => ({ error: 'Request failed' }));
+  const retry = Number(res.headers.get('Retry-After'));
+  return new ApiError(res.status, body ?? {}, Number.isFinite(retry) && retry > 0 ? retry : undefined);
+}
+
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await apiFetch(path);
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
@@ -98,10 +132,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     method: 'POST',
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
@@ -110,38 +141,33 @@ export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
     method: 'PUT',
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
 export async function apiDelete<T>(path: string): Promise<T> {
   const res = await apiFetch(path, { method: 'DELETE' });
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || 'Request failed');
-  }
+  if (!res.ok) throw await toApiError(res);
   return res.json();
 }
 
 // --- Auth API ---
 
-export async function loginApi(email: string, password: string) {
+/** turnstileToken is sent once the server has answered captchaRequired. */
+export async function loginApi(email: string, password: string, turnstileToken?: string) {
   const data = await apiPost<{ token: string; user: AuthUser }>(
     '/auth/login',
-    { email, password }
+    turnstileToken ? { email, password, turnstileToken } : { email, password }
   );
   setToken(data.token);
   setUser(data.user);
   return data;
 }
 
-export async function registerApi(name: string, email: string, password: string) {
+export async function registerApi(name: string, email: string, password: string, turnstileToken: string) {
   const data = await apiPost<{ token: string; user: AuthUser }>(
     '/auth/register',
-    { name, email, password }
+    { name, email, password, turnstileToken }
   );
   setToken(data.token);
   setUser(data.user);
@@ -190,10 +216,33 @@ export async function adjustDistractionsApi(id: number | string, delta: 1 | -1) 
 
 // --- Analytics API ---
 
-export async function fetchAnalytics(range: 'week' | 'month') {
-  return apiGet<any>(`/analytics?range=${range}`);
+/** Thrown when a response does not match the contract in src/contracts/analytics.ts. */
+export class ContractError extends Error {
+  constructor(what: string, issues: string) {
+    super(`Unexpected response from ${what}: ${issues}`);
+  }
 }
 
-export async function fetchFocusPatterns(days: number = 30) {
-  return apiGet<any>(`/analytics/focus-patterns?days=${days}`);
+function parseWith<S extends z.ZodType>(schema: S, what: string) {
+  return (value: unknown): z.infer<S> => {
+    const result = schema.safeParse(value);
+    if (result.error) throw new ContractError(what, result.error.message);
+    return result.data;
+  };
+}
+
+export async function fetchAnalytics(range: 'week' | 'month'): Promise<PeriodReport> {
+  return apiGet<unknown>(`/analytics?range=${range}`).then(parseWith(PeriodReport, 'analytics'));
+}
+
+export async function generateSmartSchedule(body: unknown): Promise<SmartScheduleResponse> {
+  return apiPost<unknown>('/analytics/smart-schedule', body).then(parseWith(SmartScheduleResponse, 'smart schedule'));
+}
+
+export async function fetchToday(): Promise<TodayResponse> {
+  return apiGet<unknown>('/dashboard/today').then(parseWith(TodayResponse, 'dashboard'));
+}
+
+export async function fetchFocusPatterns(days: number = 30): Promise<FocusPatternsResponse> {
+  return apiGet<unknown>(`/analytics/focus-patterns?days=${days}`).then(parseWith(FocusPatternsResponse, 'focus patterns'));
 }

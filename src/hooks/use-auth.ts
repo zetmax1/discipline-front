@@ -6,30 +6,30 @@ export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, turnstileToken?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await loginApi(email, password);
+      const data = await loginApi(email, password, turnstileToken);
       setUser(data.user);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
+  const register = useCallback(async (name: string, email: string, password: string, turnstileToken: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await registerApi(name, email, password);
+      const data = await registerApi(name, email, password, turnstileToken);
       setUser(data.user);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
       throw err;
     } finally {
       setLoading(false);

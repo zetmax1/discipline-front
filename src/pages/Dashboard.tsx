@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { Calendar, CheckCircle2, Brain, Clock, Flame, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,41 +12,39 @@ import { CATEGORY_LABELS } from '@/lib/types';
 import { toast } from 'sonner';
 import { COMPLETION_MESSAGES } from '@/lib/static-data';
 import { isStoredWord } from '@/lib/vocabulary';
-
-function getTimeDiffHours(start: string, end: string) {
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  return (eh * 60 + em - sh * 60 - sm) / 60;
-}
+import { fetchToday, isAuthenticated } from '@/lib/api';
+import { formatHours, formatPercent, formatScore } from '@/lib/analytics-format';
 
 export default function Dashboard() {
   const { todayTasks, updateTask } = useTasks();
   const { todayWords, toggleLearned } = useVocabulary();
   const { quote, author } = useQuote();
 
-  const stats = useMemo(() => {
-    const total = todayTasks.length;
-    const done = todayTasks.filter(t => t.status === 'completed').length;
-    const completion = total > 0 ? Math.round((done / total) * 100) : 0;
+  // Today's metrics come from the analytics service (the single metrics module).
+  const loggedIn = isAuthenticated();
+  const { data: today, error: todayError } = useQuery({
+    queryKey: ['dashboard', 'today'],
+    queryFn: fetchToday,
+    enabled: loggedIn,
+  });
 
-    const deepWorkTasks = todayTasks.filter(t => t.category === 'deep-work');
-    const deepWorkHours = deepWorkTasks.reduce((acc, t) => acc + getTimeDiffHours(t.startTime, t.endTime), 0);
-    const totalHours = todayTasks.reduce((acc, t) => acc + getTimeDiffHours(t.startTime, t.endTime), 0);
-    const totalDistractions = todayTasks.reduce((acc, t) => acc + t.distractions, 0);
-
-    const deepRatio = totalHours > 0 ? deepWorkHours / totalHours : 0;
-    const distractionPenalty = Math.min(totalDistractions * 5, 40);
-    const focusScore = Math.max(0, Math.round(deepRatio * 100 - distractionPenalty));
-
-    return { total, done, completion, deepWorkHours: deepWorkHours.toFixed(1), totalHours: totalHours.toFixed(1), focusScore };
-  }, [todayTasks]);
+  const done = todayTasks.filter(t => t.status === 'completed').length;
+  const total = todayTasks.length;
+  const unavailable = !loggedIn ? 'Not available in demo mode' : todayError ? 'Could not load metrics' : null;
 
   const summaryCards = [
     { label: 'Today', value: format(new Date(), 'EEE, MMM d'), icon: Calendar },
-    { label: 'Completion', value: `${stats.completion}%`, icon: CheckCircle2 },
-    { label: 'Focus Score', value: `${stats.focusScore}`, icon: Brain },
-    { label: 'Total Hours', value: stats.totalHours, icon: Clock },
-    { label: 'Deep Work', value: `${stats.deepWorkHours}h`, icon: Flame },
+    {
+      label: 'Focus Score', testId: 'focus-score', value: formatScore(today?.focus_score), icon: Brain,
+      sub: today ? `Completion ${formatPercent(today.completion)} · Deep ${formatPercent(today.deep)} · Distraction ${formatPercent(today.distraction)}` : unavailable,
+      subTestId: 'focus-breakdown',
+    },
+    { label: 'Planned', testId: 'planned', value: today ? formatHours(today.planned_minutes) : '—', icon: Clock },
+    { label: 'Done', testId: 'done', value: today ? formatHours(today.completed_minutes) : '—', icon: CheckCircle2 },
+    {
+      label: 'Deep Work', value: today ? formatHours(today.deep_work_minutes) : '—', icon: Flame,
+      sub: today ? `of ${formatHours(today.daily_deep_work_target_minutes)} target` : null,
+    },
   ];
 
   const handleComplete = (id: string | number) => {
@@ -72,7 +70,8 @@ export default function Dashboard() {
                 <card.icon className="h-3.5 w-3.5" />
                 <span className="text-xs font-medium uppercase tracking-wide">{card.label}</span>
               </div>
-              <p className="text-xl font-bold">{card.value}</p>
+              <p className="text-xl font-bold" data-testid={card.testId}>{card.value}</p>
+              {card.sub && <p className="text-[11px] text-muted-foreground mt-1" data-testid={card.subTestId}>{card.sub}</p>}
             </CardContent>
           </Card>
         ))}
@@ -110,7 +109,7 @@ export default function Dashboard() {
         {/* Task List */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold">Tasks ({stats.done}/{stats.total})</CardTitle>
+            <CardTitle className="text-base font-semibold">Tasks ({done}/{total})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">

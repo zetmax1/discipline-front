@@ -62,7 +62,7 @@ export default function Vocabulary() {
                       </Badge>
                     )}
                     <Badge variant="outline" className="text-xs">
-                      {word.language === 'russian' ? 'Russian A2+' : 'English C1'}
+                      {word.language === 'russian' ? 'Russian' : 'English'}
                     </Badge>
                   </div>
                 </div>
