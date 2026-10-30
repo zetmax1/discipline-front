@@ -317,7 +317,7 @@ export const en = {
   'errors.task_not_movable': 'This block can no longer be moved.',
   'errors.idempotency_key_required': 'Something went wrong while syncing. Please try again.',
   'errors.checkin_invalid': 'Check the sleep times, quality and energy (1–5).',
-  'errors.session_invalid': 'This focus session can't be saved. Please check its times.',
+  'errors.session_invalid': "This focus session can't be saved. Please check its times.",
   'errors.session_active': 'Another focus session is already running.',
   'errors.parking_note_invalid': 'A note needs 1–280 characters.',
   'errors.shutdown_invalid': 'Your win can be up to 280 characters.',
