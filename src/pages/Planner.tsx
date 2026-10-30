@@ -13,6 +13,8 @@ import { categoryLabel } from '@/lib/smart-schedule';
 import { useI18n } from '@/i18n';
 import { localDateString } from '@/lib/dates';
 import { isOpen } from '@/lib/blocks';
+import { useFeature } from '@/hooks/use-features';
+import { BlockCheckin } from '@/components/daily/BlockCheckin';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
 
@@ -40,6 +42,7 @@ export default function Planner() {
   const { todayTasks, addTask, updateTask, adjustDistractions, deleteTask } = useTasks();
   const today = localDateString();
   const { t, locale } = useI18n();
+  const dailyLoop = useFeature('F1');
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<TaskCategory>('deep-work');
@@ -208,7 +211,8 @@ export default function Planner() {
                           </div>
                         )}
 
-                        {isOpen(task.status) && (
+                        {isOpen(task.status) && dailyLoop && <BlockCheckin blockId={task.id} compact />}
+                        {isOpen(task.status) && !dailyLoop && (
                           <>
                             <button onClick={() => handleComplete(task.id)} className="p-1 hover:bg-background/50 rounded" title={t('planner.complete')} aria-label={t('planner.complete')}>
                               <CheckCircle2 className="h-4 w-4 text-accent" />

@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom
 import { AppLayout } from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { isAuthenticated, isDemoMode } from "./lib/api";
-import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Planner from "./pages/Planner";
 import Analytics from "./pages/Analytics";
 import SmartSchedule from "./pages/SmartSchedule";
@@ -50,7 +50,7 @@ const App = () => (
 
           {/* App pages — with sidebar, protected by auth or demo mode */}
           <Route element={<LayoutWrapper />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
             <Route path="/planner" element={<Planner />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/schedule" element={<SmartSchedule />} />

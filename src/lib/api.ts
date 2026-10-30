@@ -146,6 +146,17 @@ export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
   return res.json();
 }
 
+/** Any method, with extra headers (e.g. Idempotency-Key). */
+export async function apiSend<T>(method: string, path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+  const res = await apiFetch(path, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) throw await toApiError(res);
+  return res.json();
+}
+
 export async function apiDelete<T>(path: string): Promise<T> {
   const res = await apiFetch(path, { method: 'DELETE' });
   if (!res.ok) throw await toApiError(res);
