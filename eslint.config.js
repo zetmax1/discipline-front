@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 import noUiLiteral from "./eslint-rules/no-ui-literal.js";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "dist-e2e"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
