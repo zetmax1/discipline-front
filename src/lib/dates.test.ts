@@ -60,3 +60,10 @@ describe('no UTC date slicing left in the app', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('weekOptions labels', () => {
+  it('are written in the chosen language', () => {
+    const opts = weekOptions(new Date(2026, 9, 29, 0, 30), 2, 'ru');
+    expect(opts[0].label).toMatch(/^Эта неделя \(26 окт\.? – 1 нояб\.?\)$/);
+  });
+});

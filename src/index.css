@@ -22,9 +22,9 @@
     --secondary-foreground: 220 25% 10%;
 
     --muted: 210 18% 95%;
-    --muted-foreground: 215 14% 46%;
+    --muted-foreground: 215 16% 45%; /* AA on --muted */
 
-    --accent: 145 18% 49%;
+    --accent: 145 22% 41%; /* AA with white text */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -71,13 +71,13 @@
     --secondary-foreground: 210 20% 92%;
 
     --muted: 220 20% 16%;
-    --muted-foreground: 215 15% 55%;
+    --muted-foreground: 215 15% 57%;
 
     --accent: 145 18% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 35%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 60%; /* readable as text on the dark background */
+    --destructive-foreground: 222 30% 8%;
 
     --border: 220 20% 18%;
     --input: 220 20% 18%;
@@ -86,7 +86,7 @@
     --sidebar-background: 222 25% 10%;
     --sidebar-foreground: 210 15% 70%;
     --sidebar-primary: 213 50% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 222 30% 8%;
     --sidebar-accent: 220 20% 16%;
     --sidebar-accent-foreground: 210 15% 70%;
     --sidebar-border: 220 20% 18%;
@@ -111,5 +111,19 @@
 
   code, pre {
     font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* F12a phone shell: every control is at least 44×44 px below 768 px (M1: touch targets).
+   Only while F12A is on (ShellSync sets data-shell); a checkbox counts through its label row. */
+@media (max-width: 767px) {
+  html[data-shell="f12a"] :is(button, a[href], select, input:not([type="checkbox"], [type="radio"], [type="hidden"]), [role="button"], [role="combobox"]):not([role="checkbox"]) {
+    min-height: 44px;
+  }
+  html[data-shell="f12a"] :is(button, [role="button"], [role="combobox"]):not([role="checkbox"]) {
+    min-width: 44px;
+  }
+  html[data-shell="f12a"] label:has([role="checkbox"]) {
+    min-height: 44px;
   }
 }

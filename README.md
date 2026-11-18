@@ -43,7 +43,8 @@ You can edit files directly through the GitHub interface or use GitHub Codespace
 
 ## Checks
 
-`npm run check` runs tsc, eslint, vitest (including the analytics contract test), the
+`npm run check` runs tsc, eslint, vitest (including the contract tests), the Playwright
+E2E specs in `e2e/` (`npm run e2e`; once per machine: `npm run e2e:install`), the
 production build, `npm audit --omit=dev` against `audit-allowlist.json` (`audit:check`) and
 gitleaks over the full history (`secrets`, needs Docker).
 

@@ -6,10 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Minus, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 import { useTasks } from '@/hooks/use-tasks';
-import { CATEGORY_LABELS, CATEGORY_COLORS, type TaskCategory } from '@/lib/types';
+import { TASK_CATEGORIES, CATEGORY_COLORS, type TaskCategory } from '@/lib/types';
 import { toast } from 'sonner';
-import { COMPLETION_MESSAGES } from '@/lib/static-data';
+import { completionMessage } from '@/lib/static-data';
+import { categoryLabel } from '@/lib/smart-schedule';
+import { useI18n } from '@/i18n';
 import { localDateString } from '@/lib/dates';
+import { isOpen } from '@/lib/blocks';
+import { useFeature } from '@/hooks/use-features';
+import { BlockCheckin } from '@/components/daily/BlockCheckin';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
 
@@ -36,6 +41,8 @@ function timeToMinutes(t: string): number {
 export default function Planner() {
   const { todayTasks, addTask, updateTask, adjustDistractions, deleteTask } = useTasks();
   const today = localDateString();
+  const { t, locale } = useI18n();
+  const dailyLoop = useFeature('F1');
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<TaskCategory>('deep-work');
@@ -47,11 +54,11 @@ export default function Planner() {
 
   const handleAdd = async () => {
     if (!name.trim()) {
-      toast.error('Please enter a task name.');
+      toast.error(t('planner.enterName'));
       return;
     }
     if (!isTimeValid) {
-      toast.error('End time must be after start time.');
+      toast.error(t('planner.endAfterStart'));
       return;
     }
     const result = await addTask({ name: name.trim(), category, startTime, endTime, energy, date: today });
@@ -60,7 +67,7 @@ export default function Planner() {
       return;
     }
     setName('');
-    toast('Block added.');
+    toast(t('planner.added'));
   };
 
   // Auto-adjust end time when start time changes
@@ -76,45 +83,45 @@ export default function Planner() {
   };
 
   const handleComplete = (id: string | number) => {
-    updateTask(id, { status: 'completed' });
-    toast(COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)]);
+    updateTask(id, { status: 'done' });
+    toast(t(completionMessage()));
   };
 
   const handleSkip = (id: string | number) => {
     updateTask(id, { status: 'skipped' });
-    toast('Block skipped.');
+    toast(t('planner.skipped'));
   };
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <h1 className="text-2xl font-bold">Daily Planner</h1>
+      <h1 className="text-2xl font-bold">{t('planner.title')}</h1>
 
       {/* Add Task Form */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">New Block</CardTitle>
+          <CardTitle className="text-base font-semibold">{t('planner.newBlock')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
             <div className="md:col-span-2">
-              <Label className="text-xs">Task</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Task name" onKeyDown={e => e.key === 'Enter' && handleAdd()} />
+              <Label htmlFor="block-name" className="text-xs">{t('planner.task')}</Label>
+              <Input id="block-name" value={name} onChange={e => setName(e.target.value)} placeholder={t('planner.taskPlaceholder')} onKeyDown={e => e.key === 'Enter' && handleAdd()} />
             </div>
             <div>
-              <Label className="text-xs">Category</Label>
+              <Label className="text-xs">{t('planner.category')}</Label>
               <Select value={category} onValueChange={v => setCategory(v as TaskCategory)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label={t('planner.category')}><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  {TASK_CATEGORIES.map(k => (
+                    <SelectItem key={k} value={k}>{categoryLabel(k, locale)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label className="text-xs">Start</Label>
+              <Label className="text-xs">{t('planner.start')}</Label>
               <Select value={startTime} onValueChange={handleStartChange}>
-                <SelectTrigger className="font-mono text-sm"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="font-mono text-sm" aria-label={t('planner.start')}><SelectValue /></SelectTrigger>
                 <SelectContent className="max-h-60">
                   {TIME_OPTIONS.filter(t => t !== '24:00').map(t => (
                     <SelectItem key={`s-${t}`} value={t} className="font-mono">{t}</SelectItem>
@@ -123,9 +130,9 @@ export default function Planner() {
               </Select>
             </div>
             <div>
-              <Label className="text-xs">End</Label>
+              <Label className="text-xs">{t('planner.end')}</Label>
               <Select value={endTime} onValueChange={setEndTime}>
-                <SelectTrigger className={`font-mono text-sm ${!isTimeValid ? 'border-destructive text-destructive' : ''}`}>
+                <SelectTrigger aria-label={t('planner.end')} className={`font-mono text-sm ${!isTimeValid ? 'border-destructive text-destructive' : ''}`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
@@ -135,16 +142,18 @@ export default function Planner() {
                 </SelectContent>
               </Select>
               {!isTimeValid && (
-                <p className="text-[10px] text-destructive mt-0.5">Must be after start</p>
+                <p className="text-[10px] text-destructive mt-0.5">{t('planner.mustBeAfterStart')}</p>
               )}
             </div>
             <div>
-              <Label className="text-xs">Energy ({energy})</Label>
+              <Label className="text-xs">{t('planner.energy', { energy })}</Label>
               <div className="flex gap-1 h-10 items-center">
                 {[1, 2, 3, 4, 5].map(n => (
                   <button
                     key={n}
                     onClick={() => setEnergy(n)}
+                    aria-label={t('planner.energyLevel', { n })}
+                    aria-pressed={n === energy}
                     className={`w-7 h-7 rounded text-xs font-medium border transition-colors ${
                       n <= energy ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
                     }`}
@@ -156,7 +165,7 @@ export default function Planner() {
             </div>
           </div>
           <Button onClick={handleAdd} className="mt-3" size="sm" disabled={!name.trim() || !isTimeValid}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add Block
+            <Plus className="h-3.5 w-3.5 mr-1" /> {t('planner.addBlock')}
           </Button>
         </CardContent>
       </Card>
@@ -164,7 +173,7 @@ export default function Planner() {
       {/* Timeline Visualization */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Time Blocks</CardTitle>
+          <CardTitle className="text-base font-semibold">{t('planner.timeBlocks')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -178,41 +187,42 @@ export default function Planner() {
                   <div className="w-16 shrink-0 py-2 text-xs text-muted-foreground font-mono">
                     {String(hour).padStart(2, '0')}:00
                   </div>
-                  <div className="flex-1 py-1 space-y-1">
+                  <div className="flex-1 min-w-0 py-1 space-y-1">
                     {blocks.map(task => (
                       <div
                         key={task.id}
-                        className={`flex items-center gap-2 px-3 py-2 rounded border text-sm transition-all ${
+                        className={`flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 rounded border text-sm transition-all ${
                           CATEGORY_COLORS[task.category]
-                        } ${task.status === 'completed' ? 'opacity-60' : ''} ${task.status === 'skipped' ? 'opacity-30 line-through' : ''}`}
+                        } ${task.status === 'done' || task.status === 'partial' ? 'opacity-60' : ''} ${task.status === 'skipped' ? 'opacity-30 line-through' : ''}`}
                       >
-                        <span className="flex-1 font-medium">{task.name}</span>
+                        <span className="flex-1 min-w-[7rem] font-medium break-words">{task.name}</span>
                         <span className="text-[10px] font-mono">{task.startTime}–{task.endTime}</span>
 
                         {/* Distraction counter */}
-                        {task.status === 'pending' && (
+                        {isOpen(task.status) && (
                           <div className="flex items-center gap-1 border-l pl-2 ml-1">
-                            <button onClick={() => adjustDistractions(task.id, -1)} className="p-0.5 hover:bg-background/50 rounded">
+                            <button onClick={() => adjustDistractions(task.id, -1)} className="p-0.5 hover:bg-background/50 rounded" aria-label={t('planner.distractionLess')}>
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="text-xs font-mono w-4 text-center">{task.distractions}</span>
-                            <button onClick={() => adjustDistractions(task.id, 1)} className="p-0.5 hover:bg-background/50 rounded">
+                            <button onClick={() => adjustDistractions(task.id, 1)} className="p-0.5 hover:bg-background/50 rounded" aria-label={t('planner.distractionMore')}>
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>
                         )}
 
-                        {task.status === 'pending' && (
+                        {isOpen(task.status) && dailyLoop && <BlockCheckin blockId={task.id} compact />}
+                        {isOpen(task.status) && !dailyLoop && (
                           <>
-                            <button onClick={() => handleComplete(task.id)} className="p-1 hover:bg-background/50 rounded" title="Complete">
+                            <button onClick={() => handleComplete(task.id)} className="p-1 hover:bg-background/50 rounded" title={t('planner.complete')} aria-label={t('planner.complete')}>
                               <CheckCircle2 className="h-4 w-4 text-accent" />
                             </button>
-                            <button onClick={() => handleSkip(task.id)} className="p-1 hover:bg-background/50 rounded" title="Skip">
+                            <button onClick={() => handleSkip(task.id)} className="p-1 hover:bg-background/50 rounded" title={t('planner.skip')} aria-label={t('planner.skip')}>
                               <XCircle className="h-4 w-4 text-muted-foreground" />
                             </button>
                           </>
                         )}
-                        <button onClick={() => deleteTask(task.id)} className="p-1 hover:bg-background/50 rounded" title="Delete">
+                        <button onClick={() => deleteTask(task.id)} className="p-1 hover:bg-background/50 rounded" title={t('planner.delete')} aria-label={t('planner.delete')}>
                           <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                         </button>
                       </div>

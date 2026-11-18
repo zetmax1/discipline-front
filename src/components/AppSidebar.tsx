@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, BarChart3, Sparkles, BookOpen, User, LogOut, LogIn } from 'lucide-react';
+import { User, LogOut, LogIn } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { ProfileModal } from '@/components/ProfileModal';
 import {
@@ -15,14 +15,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { isAuthenticated, isDemoMode, getUser, logout } from '@/lib/api';
-
-const items = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Daily Planner', url: '/planner', icon: CalendarDays },
-  { title: 'Analytics', url: '/analytics', icon: BarChart3 },
-  { title: 'Smart Schedule', url: '/schedule', icon: Sparkles },
-  { title: 'Vocabulary', url: '/vocabulary', icon: BookOpen },
-];
+import { useI18n } from '@/i18n';
+import { NAV_ITEMS } from '@/components/nav-items';
 
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
@@ -32,6 +26,7 @@ export function AppSidebar() {
   const demoMode = isDemoMode();
   const user = getUser();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   // Close sidebar on mobile after clicking a nav item
   const handleNavClick = () => {
@@ -46,22 +41,22 @@ export function AppSidebar() {
         <SidebarContent className="pt-4">
           {!collapsed && (
             <div className="px-6 pb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">Discipline</h2>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Tracker</p>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-primary">{t('common.appName')}</h2>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{t('common.appTagline')}</p>
             </div>
           )}
           {collapsed && (
             <div className="flex justify-center pb-4">
-              <span className="text-sm font-bold text-primary">D</span>
+              <span className="text-sm font-bold text-primary">{t('common.appName').charAt(0)}</span>
             </div>
           )}
           <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest">Navigation</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest">{t('nav.navigation')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
+                {NAV_ITEMS.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild tooltip={t(item.title)}>
                       <NavLink
                         to={item.url}
                         end={item.url === '/'}
@@ -70,7 +65,7 @@ export function AppSidebar() {
                         onClick={handleNavClick}
                       >
                         <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
+                        <span>{t(item.title)}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -92,7 +87,7 @@ export function AppSidebar() {
                   </div>
                   {!collapsed && (
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{user?.name || 'User'}</p>
+                      <p className="text-xs font-medium truncate">{user?.name || t('nav.user')}</p>
                       <p className="text-[10px] text-muted-foreground truncate">{user?.email || ''}</p>
                     </div>
                   )}
@@ -102,13 +97,13 @@ export function AppSidebar() {
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  {!collapsed && <span>Sign out</span>}
+                  {!collapsed && <span>{t('nav.signOut')}</span>}
                 </button>
               </>
             ) : demoMode ? (
               <>
                 {!collapsed && (
-                  <p className="px-3 text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Demo Mode</p>
+                  <p className="px-3 text-[10px] text-muted-foreground uppercase tracking-wide font-medium">{t('nav.demoMode')}</p>
                 )}
                 <button
                   onClick={() => {
@@ -118,14 +113,14 @@ export function AppSidebar() {
                   className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
                 >
                   <LogIn className="h-4 w-4" />
-                  {!collapsed && <span>Sign in / Sign up</span>}
+                  {!collapsed && <span>{t('nav.signInUp')}</span>}
                 </button>
                 <button
                   onClick={logout}
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  {!collapsed && <span>Exit demo</span>}
+                  {!collapsed && <span>{t('nav.exitDemo')}</span>}
                 </button>
               </>
             ) : null}

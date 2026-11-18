@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Discipline — offline</title>
+  <style>
+    :root { color-scheme: light dark; --bg: #f8f9fb; --fg: #13192a; --muted: #636e80; --link: #1b3a5e; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #0e1320; --fg: #e6eaf0; --muted: #8a95a8; --link: #7aa3d6; } }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
+           font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 22rem; padding: 1.5rem 1rem; }
+    img { width: 56px; height: 56px; }
+    section { margin-top: 1.25rem; }
+    h1 { font-size: 1.125rem; margin: 0 0 .25rem; }
+    p { margin: 0; color: var(--muted); }
+    a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 1.5rem; padding: 0 1rem;
+        border-radius: .5rem; background: var(--link); color: var(--bg); font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/icons/icon-192.png" alt="" />
+    <section lang="uz">
+      <h1>Internet yoʻq</h1>
+      <p>Aloqa tiklangach, ilova yana ochiladi.</p>
+    </section>
+    <section lang="ru">
+      <h1>Нет подключения</h1>
+      <p>Приложение откроется, когда связь вернётся.</p>
+    </section>
+    <section lang="en">
+      <h1>You're offline</h1>
+      <p>The app will open again once you're back online.</p>
+    </section>
+    <a href="/">Qayta urinish · Повторить · Try again</a>
+  </main>
+</body>
+</html>

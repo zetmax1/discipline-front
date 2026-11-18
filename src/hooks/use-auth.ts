@@ -4,7 +4,8 @@ import { loginApi, registerApi, logout, isAuthenticated, getUser } from '@/lib/a
 export function useAuth() {
   const [user, setUser] = useState(getUser());
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // The caught error itself: the UI translates it (useI18n().errorMessage).
+  const [error, setError] = useState<unknown>(null);
 
   const login = useCallback(async (email: string, password: string, turnstileToken?: string) => {
     setLoading(true);
@@ -14,7 +15,7 @@ export function useAuth() {
       setUser(data.user);
       return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      setError(err);
       throw err;
     } finally {
       setLoading(false);
@@ -29,7 +30,7 @@ export function useAuth() {
       setUser(data.user);
       return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      setError(err);
       throw err;
     } finally {
       setLoading(false);

@@ -24,3 +24,11 @@ describe('formatDays', () => {
     expect(formatDays([])).toBe('No days');
   });
 });
+
+describe('in other languages', () => {
+  it('uses local weekday names and category labels', () => {
+    expect(formatDays(WEEKDAYS, 'ru')).toBe('пн–пт');
+    expect(formatDays([], 'uz')).toBe('Kun tanlanmagan');
+    expect(shortfallMessages({ 'deep-work': 90 }, 'ru')).toEqual(['Не поместилось 1,5 ч: Глубокая работа.']);
+  });
+});

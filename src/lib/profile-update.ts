@@ -1,4 +1,6 @@
 import { passwordPolicyError } from './password-policy';
+import { translate } from '@/i18n/translate';
+import type { Locale } from '@/i18n/locales';
 
 export interface ProfileForm {
   name: string;
@@ -23,6 +25,7 @@ export interface ProfileUpdateBody {
 export function buildProfileUpdate(
   current: { name?: string; email?: string; timezone?: string } | null,
   form: ProfileForm,
+  locale: Locale = 'en',
 ): { body?: ProfileUpdateBody; error?: string } {
   const body: ProfileUpdateBody = {};
   if (form.name !== current?.name) body.name = form.name;
@@ -35,13 +38,11 @@ export function buildProfileUpdate(
   if (changingEmail || changingPassword) {
     if (!form.oldPassword) {
       return {
-        error: changingEmail
-          ? 'Enter your current password to change your email.'
-          : 'Enter your current password to set a new password.',
+        error: translate(locale, changingEmail ? 'profile.needCurrentForEmail' : 'profile.needCurrentForPassword'),
       };
     }
     if (changingPassword) {
-      const policyError = passwordPolicyError(form.newPassword);
+      const policyError = passwordPolicyError(form.newPassword, locale);
       if (policyError) return { error: policyError };
       body.newPassword = form.newPassword;
     }

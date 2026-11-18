@@ -1,6 +1,8 @@
 export type TaskCategory = 'deep-work' | 'study' | 'admin' | 'gym' | 'rest';
 
-export type TaskStatus = 'pending' | 'completed' | 'skipped';
+import type { BlockStatus } from '@/contracts/blocks';
+
+export type TaskStatus = BlockStatus;
 
 export interface Task {
   id: string;
@@ -12,6 +14,14 @@ export interface Task {
   distractions: number;
   energy: number; // 1-5
   date: string; // YYYY-MM-DD
+  // Block lifecycle (F1); absent in demo data.
+  startMin?: number;
+  endMin?: number;
+  actualStartMin?: number | null;
+  actualEndMin?: number | null;
+  focusRating?: number | null;
+  note?: string | null;
+  movedFromId?: number | null;
 }
 
 export interface VocabularyWord {
@@ -51,19 +61,14 @@ export interface WeeklyGoals {
   restHours: number;
 }
 
-export const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  'deep-work': 'Deep Work',
-  'study': 'Study',
-  'admin': 'Admin',
-  'gym': 'Gym',
-  'rest': 'Rest',
-};
+/** Block categories in display order; names come from i18n (`categories.*`). */
+export const TASK_CATEGORIES: TaskCategory[] = ['deep-work', 'study', 'admin', 'gym', 'rest'];
 
 export const CATEGORY_COLORS: Record<TaskCategory | 'fixed', string> = {
   'deep-work': 'bg-primary/15 text-primary border-primary/30',
-  'study': 'bg-blue-100 text-blue-700 border-blue-200',
+  'study': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-900',
   'admin': 'bg-muted text-muted-foreground border-border',
   'gym': 'bg-accent/15 text-accent border-accent/30',
-  'rest': 'bg-amber-50 text-amber-700 border-amber-200',
+  'rest': 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-900',
   'fixed': 'bg-secondary text-secondary-foreground border-border',
 };
