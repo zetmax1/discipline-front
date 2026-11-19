@@ -18,18 +18,6 @@
       "package": "zod",
       "reason": "Memory exhaustion validating oversized constrained collections. zod only parses responses from our own API, whose sizes the server bounds; no user-supplied payload is validated with zod.",
       "reviewed": "2026-10-30"
-    },
-    {
-      "id": "GHSA-3g3m-2fjr-6pw4",
-      "package": "glob",
-      "reason": "AbortSignal cancellation bypass in glob. Used solely build-time by sucrase/tailwindcss to transpile build configs; no user input or runtime path is processed.",
-      "reviewed": "2026-11-09"
-    },
-    {
-      "id": "GHSA-g3hv-75wg-m249",
-      "package": "minimatch",
-      "reason": "ReDoS / globparts amplification in minimatch. Used solely build-time by sucrase/tailwindcss for local file pattern matching; no untrusted user input is evaluated.",
-      "reviewed": "2026-11-09"
     }
   ]
 }

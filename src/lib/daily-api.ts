@@ -39,8 +39,15 @@ export interface CheckinBody {
   note?: string;
 }
 
+/**
+ * Saves the morning check-in, stamped with the moment the user saved it (`madeAt`), so a check-in
+ * queued offline before midnight still counts for that day when the queue drains afterwards. The
+ * server only trusts the stamp within the bounds it uses for a queued session start (at most 24 h
+ * old, at most a minute ahead) and otherwise counts the check-in for today.
+ */
 export function saveCheckin(body: CheckinBody) {
-  return sendOrQueue({ key: 'checkin:today', method: 'PUT', path: '/checkins/today', body }, r =>
+  const stamped = { ...body, madeAt: new Date().toISOString() };
+  return sendOrQueue({ key: 'checkin:today', method: 'PUT', path: '/checkins/today', body: stamped }, r =>
     sendRequest(r).then(parse(CheckinResponse, 'check-in')));
 }
 
