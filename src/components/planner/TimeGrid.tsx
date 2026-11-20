@@ -63,6 +63,7 @@ export function TimeGrid(props: Props) {
   const { t } = useI18n();
   const press = useRef<Press | null>(null);
   const suppressClick = useRef(false);
+  const cancelledDrag = useRef<number | null>(null); // pointer of a drag Escape cancelled
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null);
   const columns = useRef<(HTMLDivElement | null)[]>([]);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -109,6 +110,13 @@ export function TimeGrid(props: Props) {
     };
     const onUp = (e: PointerEvent) => {
       const p = press.current;
+      if (cancelledDrag.current === e.pointerId) {
+        // The release of a drag Escape cancelled is not a click on the day (no "New block" form).
+        cancelledDrag.current = null;
+        suppressClick.current = true;
+        window.setTimeout(() => { suppressClick.current = false; }, 0);
+        return;
+      }
       if (!p || e.pointerId !== p.pointerId) return;
       if (p.picked) {
         suppressClick.current = true;
@@ -124,7 +132,9 @@ export function TimeGrid(props: Props) {
       if (press.current && e.pointerId === press.current.pointerId) clear();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && press.current) clear();
+      if (e.key !== 'Escape' || !press.current) return;
+      if (press.current.picked) cancelledDrag.current = press.current.pointerId;
+      clear();
     };
     // While a block is picked up on touch, the page must not scroll under the finger.
     const onTouchMove = (e: TouchEvent) => {
@@ -188,7 +198,13 @@ export function TimeGrid(props: Props) {
         const dayBlocks = blocks.filter(b => b.date === date);
         // Lanes from the drawn height: a short block is drawn at least 44 px tall on a phone.
         const minLen = MIN_TARGET_PX / pxPerMin;
-        const lanes = layoutLanes(dayBlocks.map(b => ({ id: b.id, startMin: b.startMin, endMin: Math.max(b.endMin, b.startMin + minLen) })));
+        // A conflict marker takes a lane next to the block it clashed with, so its "Place anyway" and
+        // "Skip this week" are never covered by that block.
+        const dayMarkers = markers.filter(m => m.date === date);
+        const lanes = layoutLanes<{ id: number | string; startMin: number; endMin: number }>([
+          ...dayBlocks.map(b => ({ id: b.id, startMin: b.startMin, endMin: Math.max(b.endMin, b.startMin + minLen) })),
+          ...dayMarkers.filter(m => m.reason === 'conflict').map(m => ({ id: m.key, startMin: m.startMin, endMin: Math.max(m.endMin, m.startMin + minLen) })),
+        ]);
         const isToday = date === today;
         return (
           <div
@@ -219,10 +235,13 @@ export function TimeGrid(props: Props) {
             {isToday && (
               <div className="pointer-events-none absolute inset-x-0 z-20 h-0.5 bg-primary" style={{ top: nowMin * pxPerMin }} aria-hidden="true" />
             )}
-            {markers.filter(m => m.date === date).map(m => (
+            {dayMarkers.map(m => {
+              const lane = m.reason === 'conflict' ? lanes.get(m.key) ?? { lane: 0, lanes: 1 } : { lane: 0, lanes: 1 };
+              return (
               <div key={m.key}
-                className="absolute inset-x-1 z-0 rounded-md border border-dashed border-border bg-muted/60 px-2 py-1 text-xs text-muted-foreground"
-                style={{ top: m.startMin * pxPerMin, minHeight: Math.max((m.endMin - m.startMin) * pxPerMin, 24) }}>
+                className="absolute z-0 rounded-md border border-dashed border-border bg-muted/60 px-2 py-1 text-xs text-muted-foreground"
+                style={{ top: m.startMin * pxPerMin, minHeight: Math.max((m.endMin - m.startMin) * pxPerMin, 24),
+                  left: `calc(${(100 / lane.lanes) * lane.lane}% + 4px)`, width: `calc(${100 / lane.lanes}% - 8px)` }}>
                 {m.reason === 'conflict' ? (
                   <div className="flex flex-wrap items-center gap-1">
                     <span className="w-full">{t('recurring.conflict', { name: m.name })}</span>
@@ -237,7 +256,8 @@ export function TimeGrid(props: Props) {
                   <span>{t('recurring.notThisWeek', { name: m.name })}</span>
                 )}
               </div>
-            ))}
+              );
+            })}
             {dayBlocks.map(b => {
               const cat = b.categoryId != null ? categories.get(b.categoryId) : undefined;
               const name = b.name;

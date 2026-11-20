@@ -39,7 +39,7 @@ type Exception = { ruleId: number; date: string; reason: 'cancelled' | 'conflict
 
 async function mockPlannerApi(page: Page) {
   const state = { blocks: [] as Block[], rules: [] as Rule[], exceptions: [] as Exception[], puts: [] as { id: number; body: Record<string, unknown> }[],
-    rangeReads: 0, nextId: 100 };
+    rangeReads: 0, nextId: 100, rangeFails: false, rangeHangs: false, add: (_: Parameters<typeof make>[0]) => ({}) as Block };
   const kindOf = (id: number) => CATEGORIES.find(c => c.id === id)!.kind;
   const make = (fields: { name: string; categoryId: number; date: string; startMin: number; endMin: number; ruleId?: number }): Block => ({
     id: state.nextId++, name: fields.name, category: 'personal', date: fields.date, startMin: fields.startMin, endMin: fields.endMin,
@@ -48,6 +48,7 @@ async function mockPlannerApi(page: Page) {
     categoryId: fields.categoryId, categoryKind: kindOf(fields.categoryId), recurringRuleId: fields.ruleId ?? null,
     originalDate: null, recurringEdited: false, source: fields.ruleId ? 'recurring' : 'manual',
   });
+  state.add = fields => { const b = make(fields); state.blocks.push(b); return b; };
   const clash = (date: string, s: number, e: number) =>
     state.blocks.some(b => b.date === date && !['skipped', 'moved'].includes(b.status) && b.startMin < e && b.endMin > s);
   const materialize = (from: string, to: string) => {
@@ -89,6 +90,8 @@ async function mockPlannerApi(page: Page) {
         return r.fulfill({ json: { tasks, count: tasks.length } });
       }
       state.rangeReads++;
+      if (state.rangeHangs) return; // never answers: the loading state stays
+      if (state.rangeFails) return r.fulfill({ status: 500, json: { error: 'boom', code: 'internal_error' } });
       materialize(from, to);
       return r.fulfill({ json: {
         tasks: state.blocks.filter(b => b.date >= from && b.date <= to),
@@ -111,6 +114,17 @@ async function mockPlannerApi(page: Page) {
       return r.fulfill({ json: { message: 'ok', task: b } });
     }
     return r.fallback();
+  });
+  // "Place anyway" creates the occurrence a conflict skipped; "Skip this week" makes it cancelled.
+  await page.route('**/api/recurring-rules/*/occurrences/*/*', r => {
+    const [, , , id, , date, action] = new URL(r.request().url()).pathname.split('/');
+    const x = state.exceptions.find(e => e.ruleId === Number(id) && e.date === date && e.reason === 'conflict');
+    if (!x) return r.fulfill({ status: 404, json: { error: 'n/a', code: 'occurrence_not_found' } });
+    if (action === 'skip') { x.reason = 'cancelled'; return r.fulfill({ status: 204, body: '' }); }
+    state.exceptions = state.exceptions.filter(e => e !== x);
+    const rule = state.rules.find(ru => ru.id === Number(id))!;
+    const b = state.add({ name: rule.name, categoryId: rule.categoryId, date, startMin: rule.startMin, endMin: rule.endMin, ruleId: rule.id });
+    return r.fulfill({ status: 201, json: { task: b } });
   });
   await page.route('**/api/tasks/*/occurrence', r => {
     const id = Number(new URL(r.request().url()).pathname.split('/')[3]);
@@ -356,6 +370,114 @@ test('plans a timetable, gym 3×/week and four focus blocks in one pass', async 
   expect(errors).toEqual([]);
 });
 
+test('a clash: place anyway, or skip this week — quietly, never a miss', async ({ page }, info) => {
+  const state = await mockPlannerApi(page);
+  const wed = addDays(nextMonday, 2), fri = addDays(nextMonday, 4);
+  // Something else is already planned when the gym rule wants Wednesday and Friday.
+  state.add({ name: 'Seminar', categoryId: 2, date: wed, startMin: 1080, endMin: 1140 });
+  state.add({ name: 'Dinner', categoryId: 6, date: fri, startMin: 1080, endMin: 1140 });
+  state.rules.push({ id: 7, categoryId: 4, name: 'Gym', weekdays: [1, 3, 5], startMin: 1080, endMin: 1170, validFrom: nextMonday, validTo: null, splitFromRuleId: null });
+  await signIn(page);
+  await openPlanner(page);
+  const mobile = info.project.name === 'mobile-390';
+  await goToNextWeek(page, mobile);
+  await showDay(page, mobile, wed);
+  await expect(column(page, wed).getByText("Gym didn't fit — something else is planned then.")).toBeVisible();
+  await screen(page, info, 'f13-conflict');
+  await expect(page.locator('main')).not.toContainText(/missed|failed/i);
+
+  await column(page, wed).getByRole('button', { name: 'Place anyway' }).click();
+  await expect(column(page, wed).getByRole('button', { name: /^Gym, 18:00–19:30/ })).toBeVisible();
+  await expect(column(page, wed).getByRole('button', { name: /^Seminar, 18:00–19:00/ })).toBeVisible();
+
+  await showDay(page, mobile, fri);
+  await column(page, fri).getByRole('button', { name: 'Skip this week' }).click();
+  await expect(column(page, fri).getByText('Gym: not this week')).toBeVisible();
+  await expect(column(page, fri).getByRole('button', { name: /^Gym,/ })).toHaveCount(0);
+  expect(state.exceptions).toEqual([{ ruleId: 7, date: fri, reason: 'cancelled' }]);
+});
+
+test('loading keeps the time gutter; an error shows the server message and Retry', async ({ page }, info) => {
+  const state = await mockPlannerApi(page);
+  state.rangeHangs = true;
+  await signIn(page);
+  await page.goto('/planner');
+  await expect(page.locator('[aria-busy="true"]')).toBeVisible();
+  await expect(page.getByText('12:00').first()).toBeVisible(); // the gutter is drawn before the data
+  await screen(page, info, 'f13-loading');
+
+  state.rangeHangs = false;
+  state.rangeFails = true;
+  await page.reload();
+  // The app retries a failed read three times (about 7 s) before it shows the error.
+  await expect(page.getByRole('alert')).toContainText('Something went wrong on our side. Please try again.', { timeout: 15_000 });
+  await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
+  await screen(page, info, 'f13-error');
+  state.rangeFails = false;
+  await page.getByRole('button', { name: 'Retry' }).click();
+  await expect(page.getByText('Nothing planned yet')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test.describe('with a mouse', () => {
+  test.use({ hasTouch: false });
+  test('a drag resizes, and Escape cancels a drag', async ({ page }) => {
+  const hour = 60 * ((page.viewportSize()!.width < 768) ? 1.2 : 0.8); // px per hour of the grid
+  const state = await mockPlannerApi(page);
+  state.add({ name: 'Essay', categoryId: 1, date: today, startMin: 540, endMin: 600 });
+  await signIn(page);
+  await openPlanner(page);
+  const block = page.getByRole('button', { name: /^Essay, 09:00–10:00/ });
+  await block.scrollIntoViewIfNeeded();
+  let box = (await block.boundingBox())!;
+
+  // Escape while dragging: nothing moves, nothing is saved.
+  await page.mouse.move(box.x + box.width / 2, box.y + 15);
+  await page.mouse.down();
+  for (let i = 1; i <= 6; i++) await page.mouse.move(box.x + box.width / 2, box.y + 15 + i * hour / 6);
+  await expect(page.getByRole('button', { name: /^Essay, 10:00–11:00/ })).toBeVisible(); // the preview
+  await page.keyboard.press('Escape');
+  await page.mouse.up();
+  await expect(page.getByRole('button', { name: /^Essay, 09:00–10:00/ })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0); // the release is not a click on the day
+  expect(state.puts).toEqual([]);
+
+  // The bottom edge resizes in 15-minute steps.
+  box = (await block.boundingBox())!;
+  const edge = box.y + box.height - 4; // inside the 8 px handle along the bottom edge
+  await page.mouse.move(box.x + box.width / 2, edge);
+  await page.mouse.down();
+  for (let i = 1; i <= 6; i++) await page.mouse.move(box.x + box.width / 2, edge + i * hour / 6);
+  await page.mouse.up();
+  await expect(page.getByRole('button', { name: /^Essay, 09:00–11:00/ })).toBeVisible();
+  expect(state.puts.at(-1)!.body).toMatchObject({ date: today, startTime: '09:00', endTime: '11:00' });
+  });
+});
+
+test.describe('with touch', () => {
+  test.use({ hasTouch: true });
+  test('a quick swipe over a block scrolls the day and moves nothing', async ({ page }) => {
+  const state = await mockPlannerApi(page);
+  for (const [i, s] of [480, 600, 720, 840].entries()) state.add({ name: `Block ${i}`, categoryId: 1, date: today, startMin: s, endMin: s + 90 });
+  await signIn(page);
+  await openPlanner(page);
+  const scroller = page.locator('[aria-busy]');
+  const target = page.getByRole('button', { name: /^Block 0,/ });
+  // Room to scroll both ways, with the block in view (the day opens scrolled to now).
+  await scroller.evaluate(el => { el.scrollTop = 300; });
+  const before = await scroller.evaluate(el => el.scrollTop);
+  const box = (await target.boundingBox())!;
+  const cdp = await page.context().newCDPSession(page);
+  const x = box.x + box.width / 2, y = box.y + 20;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+  for (let i = 1; i <= 8; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - i * 25, id: 1 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect.poll(() => scroller.evaluate(el => el.scrollTop)).toBeGreaterThan(before + 50);
+  expect(state.puts).toEqual([]);
+  await expect(page.getByRole('button', { name: /^Block 0, 08:00–09:30/ })).toBeVisible();
+  });
+});
+
 test.describe('keyboard only', () => {
   // Chromium ignores typed digits in a native date input while touch is emulated (the phone opens a
   // picker instead), so this pass runs without touch, at both widths: a keyboard user at 390 px too.
@@ -399,6 +521,32 @@ test('offline: shows the last loaded week read-only and plans nothing', async ({
   await screen(page, info, 'f13-offline');
   await page.getByRole('button', { name: /^Next/ }).click();
   await page.getByRole('button', { name: /^Previous/ }).click();
+  expect(state.rangeReads).toBe(reads);
+  await context.setOffline(false);
+});
+
+test('offline with a planned week: the cached blocks stay visible and nothing moves', async ({ page, context }, info) => {
+  const state = await mockPlannerApi(page);
+  state.add({ name: 'Essay', categoryId: 1, date: today, startMin: 540, endMin: 600 });
+  await signIn(page);
+  await openPlanner(page);
+  const block = page.getByRole('button', { name: /^Essay, 09:00–10:00/ });
+  await expect(block).toBeVisible();
+  const reads = state.rangeReads;
+  await context.setOffline(true);
+  await expect(page.getByText(/Offline — showing the week you last loaded/)).toBeVisible();
+  await expect(block).toBeVisible();
+  await screen(page, info, 'f13-offline-week');
+  if (info.project.name === 'desktop-1440') { // gestures are read-only offline
+    await block.scrollIntoViewIfNeeded();
+    const box = (await block.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + 15);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(box.x + box.width / 2, box.y + 15 + i * 8);
+    await page.mouse.up();
+    await expect(block).toBeVisible();
+  }
+  expect(state.puts).toEqual([]);
   expect(state.rangeReads).toBe(reads);
   await context.setOffline(false);
 });
