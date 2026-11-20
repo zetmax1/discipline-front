@@ -102,6 +102,8 @@ test('F12A on: Uzbek by default, switch to Russian, translated API errors, dark 
 test('F12A on: login page remembers the language and has the pickers', async ({ page }, info) => {
   await mockApp(page, ['F12A']);
   await signIn(page);
+  // Signed out, the login page reads the flags this device last saw: wait until they are saved.
+  await page.waitForFunction(() => localStorage.getItem('features') !== null);
   await page.evaluate(() => localStorage.removeItem('auth_token'));
   await page.goto('/login');
   await expect(page.getByRole('button', { name: 'Kirish' })).toBeVisible();
