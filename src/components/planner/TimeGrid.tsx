@@ -251,7 +251,7 @@ export function TimeGrid(props: Props) {
                   type="button"
                   data-block-id={b.id}
                   aria-label={t('planner.blockLabel', { name, start, end }) + (cat ? `, ${categoryLabel(cat, t)}` : '')}
-                  className={`absolute z-10 overflow-hidden rounded-md border border-border bg-card px-2 py-1 text-left text-xs text-foreground shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`absolute z-10 flex flex-col items-stretch justify-start overflow-hidden rounded-md border border-border bg-card px-2 py-1 text-left text-xs text-foreground shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     picked ? 'z-30 scale-[1.02] shadow-lg ring-2 ring-primary' : ''} ${finished ? 'opacity-75' : ''} ${b.status === 'skipped' ? 'text-muted-foreground' : ''}`}
                   style={{ ...blockStyle(b, lanes.get(b.id)), borderLeftWidth: 4, borderLeftColor: cat?.color ?? 'hsl(var(--border))',
                     touchAction: picked ? 'none' : 'pan-y' }}
