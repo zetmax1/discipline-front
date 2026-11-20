@@ -61,7 +61,8 @@ export function CategoryManager({ open, categories, onClose, onChanged }: Props)
       const renamed = draft.name.trim() !== categoryLabel(original, t);
       await updateCategory(draft.id, { color: draft.color, icon: draft.icon, ...(renamed ? { name: draft.name.trim() } : {}) });
     } else {
-      await createCategory({ name: draft.name.trim(), color: draft.color, icon: draft.icon, kind: draft.kind });
+      const r = await createCategory({ name: draft.name.trim(), color: draft.color, icon: draft.icon, kind: draft.kind });
+      if (r.queued) return 'planner.queued';
     }
     return 'categories.saved';
   });

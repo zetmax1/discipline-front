@@ -27,8 +27,19 @@ export const fetchCategories = () =>
 
 export interface CategoryBody { name?: string; color?: string; icon?: CategoryIcon; kind?: CategoryKind }
 
+/**
+ * A queued create carries an Idempotency-Key (the queue entry's own id), so a replay after a lost
+ * answer returns the first result instead of creating a second row (F13 review H1).
+ */
+function queuedCreate<T>(kind: string, path: string, body: unknown, read: (v: unknown) => T) {
+  const key = crypto.randomUUID();
+  return sendOrQueue({ key: `${kind}:new:${key}`, method: 'POST', path, body, headers: { 'Idempotency-Key': key } },
+    r => sendRequest(r).then(read));
+}
+
+/** Queued when offline; the category appears once the server has answered. */
 export const createCategory = (body: CategoryBody) =>
-  apiSend<unknown>('POST', '/categories', body).then(parse(CategoryResponse, 'category')).then(r => r.category);
+  queuedCreate('category', '/categories', body, v => parse(CategoryResponse, 'category')(v).category);
 
 export const updateCategory = (id: number, body: CategoryBody) =>
   apiSend<unknown>('PUT', `/categories/${id}`, body).then(parse(CategoryResponse, 'category')).then(r => r.category);
@@ -50,8 +61,7 @@ export interface RuleBody {
 
 /** Queued when offline; its occurrences appear once the server has answered and the week is read again. */
 export const createRule = (body: RuleBody) =>
-  sendOrQueue({ key: `rule:new:${crypto.randomUUID()}`, method: 'POST', path: '/recurring-rules', body },
-    r => sendRequest(r).then(parse(RuleResponse, 'rule')));
+  queuedCreate('rule', '/recurring-rules', body, parse(RuleResponse, 'rule'));
 
 export type Scope = { scope: 'all' } | { scope: 'following'; fromDate: string };
 const scopeQuery = (s: Scope) => (s.scope === 'all' ? '?scope=all' : `?scope=following&fromDate=${q(s.fromDate)}`);
@@ -81,7 +91,6 @@ export const saveBlock = (id: number, body: BlockBody) =>
     r => sendRequest(r).then(parse(BlockResponse, 'block')));
 
 export const createBlock = (body: BlockBody) =>
-  sendOrQueue({ key: `block:new:${crypto.randomUUID()}`, method: 'POST', path: '/tasks', body },
-    r => sendRequest(r).then(parse(BlockResponse, 'block')));
+  queuedCreate('block', '/tasks', body, parse(BlockResponse, 'block'));
 
 export const deleteBlock = (id: number) => apiSend<void>('DELETE', `/tasks/${id}`);
