@@ -15,6 +15,8 @@ import { localDateString } from '@/lib/dates';
 import { isOpen } from '@/lib/blocks';
 import { useFeature } from '@/hooks/use-features';
 import { BlockCheckin } from '@/components/daily/BlockCheckin';
+import { isAuthenticated } from '@/lib/api';
+import PlannerV2 from './PlannerV2';
 
 const HOURS = Array.from({ length: 19 }, (_, i) => i + 6); // 6-24
 
@@ -38,7 +40,13 @@ function timeToMinutes(t: string): number {
   return h * 60 + m;
 }
 
+/** F13 (signed in, flag on): Day and Week views with categories and recurring blocks. */
 export default function Planner() {
+  const v2 = useFeature('F13') && isAuthenticated();
+  return v2 ? <PlannerV2 /> : <LegacyPlanner />;
+}
+
+function LegacyPlanner() {
   const { todayTasks, addTask, updateTask, adjustDistractions, deleteTask } = useTasks();
   const today = localDateString();
   const { t, locale } = useI18n();
