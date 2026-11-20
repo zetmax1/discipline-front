@@ -26,4 +26,10 @@ describe('Block', () => {
     expect(Block.safeParse({ ...block, status: 'pending' }).success).toBe(false);
     expect(Block.safeParse({ ...block, endMin: 1441 }).success).toBe(false);
   });
+  it('reads a block from the previous API (no F13 fields), so a rollback of the API keeps the web working', () => {
+    const { categoryId: _c, categoryKind: _k, recurringRuleId: _r, originalDate: _o, recurringEdited: _e, ...previous } = block;
+    expect(Block.parse(previous)).toMatchObject({
+      categoryId: null, categoryKind: null, recurringRuleId: null, originalDate: null, recurringEdited: false,
+    });
+  });
 });

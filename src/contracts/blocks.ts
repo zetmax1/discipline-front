@@ -30,12 +30,13 @@ export const Block = z.looseObject({
   note: z.string().nullable(),
   movedFromId: z.number().nullable(),
   // F13: the block's category and, for an occurrence of a recurring rule, where it came from.
-  // `category` (the legacy string) stays until the column goes.
-  categoryId: z.number().nullable(),
-  categoryKind: CategoryKind.nullable(),
-  recurringRuleId: z.number().nullable(),
-  originalDate: z.string().nullable(),
-  recurringEdited: z.boolean(),
+  // `category` (the legacy string) stays until the column goes. Defaults, so the web still reads
+  // blocks from the previous API version during a rollback (review H2); the API always sends them.
+  categoryId: z.number().nullable().default(null),
+  categoryKind: CategoryKind.nullable().default(null),
+  recurringRuleId: z.number().nullable().default(null),
+  originalDate: z.string().nullable().default(null),
+  recurringEdited: z.boolean().default(false),
 });
 export type Block = z.infer<typeof Block>;
 

@@ -374,6 +374,7 @@
               ]
             },
             "categoryId": {
+              "default": null,
               "anyOf": [
                 {
                   "type": "number"
@@ -384,6 +385,7 @@
               ]
             },
             "categoryKind": {
+              "default": null,
               "anyOf": [
                 {
                   "type": "string",
@@ -402,6 +404,7 @@
               ]
             },
             "recurringRuleId": {
+              "default": null,
               "anyOf": [
                 {
                   "type": "number"
@@ -412,6 +415,7 @@
               ]
             },
             "originalDate": {
+              "default": null,
               "anyOf": [
                 {
                   "type": "string"
@@ -422,6 +426,7 @@
               ]
             },
             "recurringEdited": {
+              "default": false,
               "type": "boolean"
             }
           },
