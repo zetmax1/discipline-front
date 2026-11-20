@@ -20,6 +20,10 @@ export const ERROR_CODES = [
   'checkin_invalid', 'session_invalid', 'session_active', 'parking_note_invalid', 'shutdown_invalid',
   'word_not_found', 'word_id_invalid', 'date_invalid',
   'range_invalid', 'days_invalid', 'analytics_unavailable', 'analytics_validation_failed',
+  // F13: categories and recurring blocks
+  'category_not_found', 'category_in_use', 'category_name_taken', 'category_invalid', 'category_kind_invalid',
+  'category_color_invalid', 'category_icon_invalid', 'recurring_rule_not_found', 'recurring_dates_invalid',
+  'recurring_weekdays_invalid', 'range_too_long', 'occurrence_not_found',
 ] as const;
 
 export const ErrorCode = z.enum(ERROR_CODES);

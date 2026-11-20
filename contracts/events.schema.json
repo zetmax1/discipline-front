@@ -12,7 +12,8 @@
       "session_completed",
       "session_abandoned",
       "distraction_logged",
-      "shutdown_done"
+      "shutdown_done",
+      "week_planned"
     ]
   }
 }

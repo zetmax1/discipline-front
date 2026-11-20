@@ -154,12 +154,14 @@ export async function apiSend<T>(method: string, path: string, body?: unknown, h
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) throw await toApiError(res);
+  if (res.status === 204) return undefined as T; // No Content (F13 deletes)
   return res.json();
 }
 
 export async function apiDelete<T>(path: string): Promise<T> {
   const res = await apiFetch(path, { method: 'DELETE' });
   if (!res.ok) throw await toApiError(res);
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 

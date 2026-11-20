@@ -29,6 +29,7 @@ async function mockDailyApi(page: Page, opts: { features?: string[]; activeSessi
     startTime: `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`,
     endTime: `${String(Math.floor(e / 60)).padStart(2, '0')}:${String(e % 60).padStart(2, '0')}`,
     status, distractions: 0, energy: 3, actualStartMin: null, actualEndMin: null, focusRating: null, note: null, movedFromId: null,
+    categoryId: 1, categoryKind: 'focus', recurringRuleId: null, originalDate: null, recurringEdited: false,
   });
   const blocks = [block(1, 'Essay draft', start, Math.min(1440, start + 90)), block(2, 'Reading', Math.max(0, start - 120), Math.max(1, start - 60))];
   const serverNow = () => new Date().toISOString();

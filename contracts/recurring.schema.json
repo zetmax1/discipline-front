@@ -1,0 +1,494 @@
+{
+  "rule": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "number"
+      },
+      "categoryId": {
+        "type": "number"
+      },
+      "name": {
+        "type": "string"
+      },
+      "weekdays": {
+        "minItems": 1,
+        "maxItems": 7,
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 7
+        }
+      },
+      "startMin": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440
+      },
+      "endMin": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1440
+      },
+      "validFrom": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      "validTo": {
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "splitFromRuleId": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "categoryId",
+      "name",
+      "weekdays",
+      "startMin",
+      "endMin",
+      "validFrom",
+      "validTo",
+      "splitFromRuleId"
+    ],
+    "additionalProperties": {}
+  },
+  "rule_list": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "rules": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "categoryId": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            },
+            "weekdays": {
+              "minItems": 1,
+              "maxItems": 7,
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 7
+              }
+            },
+            "startMin": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "endMin": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "validFrom": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "validTo": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "splitFromRuleId": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "categoryId",
+            "name",
+            "weekdays",
+            "startMin",
+            "endMin",
+            "validFrom",
+            "validTo",
+            "splitFromRuleId"
+          ],
+          "additionalProperties": {}
+        }
+      }
+    },
+    "required": [
+      "rules"
+    ],
+    "additionalProperties": {}
+  },
+  "rule_response": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "rule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "categoryId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "weekdays": {
+            "minItems": 1,
+            "maxItems": 7,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 7
+            }
+          },
+          "startMin": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          "endMin": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1440
+          },
+          "validFrom": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "validTo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "splitFromRuleId": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "categoryId",
+          "name",
+          "weekdays",
+          "startMin",
+          "endMin",
+          "validFrom",
+          "validTo",
+          "splitFromRuleId"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "required": [
+      "rule"
+    ],
+    "additionalProperties": {}
+  },
+  "exception": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "ruleId": {
+        "type": "number"
+      },
+      "date": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      "reason": {
+        "type": "string",
+        "enum": [
+          "cancelled",
+          "conflict",
+          "moved"
+        ]
+      }
+    },
+    "required": [
+      "ruleId",
+      "date",
+      "reason"
+    ],
+    "additionalProperties": {}
+  },
+  "block_range": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "tasks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            },
+            "category": {
+              "type": "string"
+            },
+            "date": {
+              "type": "string"
+            },
+            "startMin": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "endMin": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "startTime": {
+              "type": "string"
+            },
+            "endTime": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "planned",
+                "in_progress",
+                "done",
+                "partial",
+                "skipped",
+                "moved"
+              ]
+            },
+            "distractions": {
+              "type": "number"
+            },
+            "energy": {
+              "type": "number"
+            },
+            "actualStartMin": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "actualEndMin": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1440
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "focusRating": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "note": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "movedFromId": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "categoryId": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "categoryKind": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "focus",
+                    "study",
+                    "admin",
+                    "exercise",
+                    "rest",
+                    "personal"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recurringRuleId": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "originalDate": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recurringEdited": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "category",
+            "date",
+            "startMin",
+            "endMin",
+            "startTime",
+            "endTime",
+            "status",
+            "distractions",
+            "energy",
+            "actualStartMin",
+            "actualEndMin",
+            "focusRating",
+            "note",
+            "movedFromId",
+            "categoryId",
+            "categoryKind",
+            "recurringRuleId",
+            "originalDate",
+            "recurringEdited"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "exceptions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "ruleId": {
+              "type": "number"
+            },
+            "date": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "cancelled",
+                "conflict",
+                "moved"
+              ]
+            }
+          },
+          "required": [
+            "ruleId",
+            "date",
+            "reason"
+          ],
+          "additionalProperties": {}
+        }
+      },
+      "truncated": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "tasks",
+      "exceptions",
+      "truncated"
+    ],
+    "additionalProperties": {}
+  }
+}

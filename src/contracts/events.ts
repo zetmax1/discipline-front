@@ -10,6 +10,8 @@ export const PRODUCT_EVENTS = [
   'block_created', 'block_status_changed', 'block_moved', 'block_checked_in',
   'checkin_morning_done', 'session_started', 'session_completed', 'session_abandoned',
   'distraction_logged', 'shutdown_done',
+  // F13: a week (or any range) was materialized and at least one occurrence was created
+  'week_planned',
 ] as const;
 
 export const ProductEventName = z.enum(PRODUCT_EVENTS);
