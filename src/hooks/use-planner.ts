@@ -5,6 +5,11 @@ import { Category } from '@/contracts/categories';
 import { RecurringRule } from '@/contracts/recurring';
 import { z } from 'zod/v4';
 import { useOnline } from './use-online';
+import { PLANNER_CACHE_PREFIX } from '@/lib/device-data';
+
+// Under the account-data prefix, so logging out or switching accounts removes them.
+const CATEGORIES_CACHE = `${PLANNER_CACHE_PREFIX}categories`;
+const RULES_CACHE = `${PLANNER_CACHE_PREFIX}rules`;
 
 function readCache<S extends z.ZodType>(key: string, schema: S): z.infer<S> | undefined {
   try {
@@ -54,10 +59,10 @@ export function useCategories() {
     queryKey: ['categories'],
     queryFn: async () => {
       const list = await fetchCategories();
-      writeCache('planner-categories', list);
+      writeCache(CATEGORIES_CACHE, list);
       return list;
     },
-    initialData: () => readCache('planner-categories', z.array(Category)),
+    initialData: () => readCache(CATEGORIES_CACHE, z.array(Category)),
     initialDataUpdatedAt: 0,
     staleTime: 5 * 60_000,
   });
@@ -70,10 +75,10 @@ export function useRules() {
     queryKey: ['rules'],
     queryFn: async () => {
       const list = await fetchRules();
-      writeCache('planner-rules', list);
+      writeCache(RULES_CACHE, list);
       return list;
     },
-    initialData: () => readCache('planner-rules', z.array(RecurringRule)),
+    initialData: () => readCache(RULES_CACHE, z.array(RecurringRule)),
     initialDataUpdatedAt: 0,
     staleTime: 60_000,
   });

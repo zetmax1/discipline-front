@@ -4,6 +4,7 @@
  * Dates are local "YYYY-MM-DD" strings, computed as calendar dates (DST never shifts them).
  */
 import { BlockRange } from '@/contracts/recurring';
+import { PLANNER_CACHE_PREFIX } from './device-data';
 import type { TKey } from '@/i18n/translate';
 
 export const STEP_MIN = 15;
@@ -111,7 +112,8 @@ export function categoryLabel(c: { name: string; systemKey?: string | null; name
   return c.nameCustom || !c.systemKey ? c.name : t(`categories.${c.systemKey}` as TKey);
 }
 
-const CACHE_PREFIX = 'planner-week:';
+// Under the account-data prefix, so logging out or switching accounts removes it (device-data.ts).
+const CACHE_PREFIX = `${PLANNER_CACHE_PREFIX}week:`;
 
 /** Keeps the last fetched week so the planner still shows it offline. */
 export function saveWeekCache(monday: string, range: BlockRange) {

@@ -39,3 +39,35 @@ describe('applyProfileResponse', () => {
     expect(getUser()?.name).toBe('Annie');
   });
 });
+
+describe('device data of the signed-in user (F13 review H4)', () => {
+  const seed = () => {
+    localStorage.setItem('planner-week:2026-11-02', '{"tasks":[{"name":"Therapy"}]}');
+    localStorage.setItem('planner-categories', '[]');
+    localStorage.setItem('planner-rules', '[]');
+    localStorage.setItem('sync-queue', '[{"key":"rule:new:x","method":"POST","path":"/recurring-rules","body":{}}]');
+    localStorage.setItem('lang', 'uz');
+  };
+  const userData = () => Object.keys(localStorage).filter(k => k.startsWith('planner-') || k === 'sync-queue');
+
+  it('logging out removes the planner caches and the sync queue, and keeps device settings', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+    seed();
+    await revokeSession();
+    expect(userData()).toEqual([]);
+    expect(localStorage.getItem('lang')).toBe('uz');
+  });
+
+  it('another account signing in on this device never sees or replays the previous one', () => {
+    seed();
+    setUser({ id: 2, name: 'Bob', email: 'bob@example.com', role: 'user' });
+    expect(userData()).toEqual([]);
+    expect(localStorage.getItem('lang')).toBe('uz');
+  });
+
+  it('the same account signing in again keeps its cache and its queued changes', () => {
+    seed();
+    setUser({ id: 1, name: 'Ann', email: 'ann@example.com', role: 'user' });
+    expect(userData().sort()).toEqual(['planner-categories', 'planner-rules', 'planner-week:2026-11-02', 'sync-queue']);
+  });
+});

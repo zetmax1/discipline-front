@@ -2,6 +2,7 @@
 import type { z } from 'zod/v4';
 import { FocusPatternsResponse, PeriodReport, SmartScheduleResponse, TodayResponse } from '@/contracts/analytics';
 import { FeaturesResponse } from '@/contracts/features';
+import { claimAccountData, clearAccountData } from './device-data';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 // --- Token management ---
@@ -32,6 +33,7 @@ export function getUser(): AuthUser | null {
 }
 
 export function setUser(user: AuthUser): void {
+  claimAccountData(user.id);
   localStorage.setItem('auth_user', JSON.stringify(user));
 }
 
@@ -207,6 +209,7 @@ export async function revokeSession(): Promise<void> {
   removeToken();
   removeUser();
   removeDemoMode();
+  clearAccountData();
 }
 
 export function logout() {
