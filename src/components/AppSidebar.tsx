@@ -14,7 +14,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { isAuthenticated, isDemoMode, getUser, logout } from '@/lib/api';
+import { isAuthenticated, isDemoMode, getUser } from '@/lib/api';
+import { useSignOut } from '@/hooks/use-sign-out';
 import { useI18n } from '@/i18n';
 import { NAV_ITEMS } from '@/components/nav-items';
 
@@ -27,6 +28,7 @@ export function AppSidebar() {
   const user = getUser();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const { signOut, signOutDialog } = useSignOut();
 
   // Close sidebar on mobile after clicking a nav item
   const handleNavClick = () => {
@@ -93,7 +95,7 @@ export function AppSidebar() {
                   )}
                 </button>
                 <button
-                  onClick={logout}
+                  onClick={signOut}
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -116,7 +118,7 @@ export function AppSidebar() {
                   {!collapsed && <span>{t('nav.signInUp')}</span>}
                 </button>
                 <button
-                  onClick={logout}
+                  onClick={signOut}
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -129,6 +131,7 @@ export function AppSidebar() {
       </Sidebar>
 
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      {signOutDialog}
     </>
   );
 }
