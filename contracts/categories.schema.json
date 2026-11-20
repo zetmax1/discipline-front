@@ -1,0 +1,242 @@
+{
+  "category": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "number"
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "color": {
+        "type": "string",
+        "pattern": "^#[0-9A-F]{6}$"
+      },
+      "icon": {
+        "type": "string",
+        "enum": [
+          "target",
+          "book-open",
+          "briefcase",
+          "dumbbell",
+          "coffee",
+          "user",
+          "graduation-cap",
+          "heart",
+          "home",
+          "moon",
+          "music",
+          "palette",
+          "plane",
+          "shopping-cart",
+          "users",
+          "wrench"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "focus",
+          "study",
+          "admin",
+          "exercise",
+          "rest",
+          "personal"
+        ]
+      },
+      "systemKey": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "nameCustom": {
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "color",
+      "icon",
+      "kind",
+      "systemKey",
+      "nameCustom"
+    ],
+    "additionalProperties": {}
+  },
+  "category_list": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "categories": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-F]{6}$"
+            },
+            "icon": {
+              "type": "string",
+              "enum": [
+                "target",
+                "book-open",
+                "briefcase",
+                "dumbbell",
+                "coffee",
+                "user",
+                "graduation-cap",
+                "heart",
+                "home",
+                "moon",
+                "music",
+                "palette",
+                "plane",
+                "shopping-cart",
+                "users",
+                "wrench"
+              ]
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "focus",
+                "study",
+                "admin",
+                "exercise",
+                "rest",
+                "personal"
+              ]
+            },
+            "systemKey": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "nameCustom": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "color",
+            "icon",
+            "kind",
+            "systemKey",
+            "nameCustom"
+          ],
+          "additionalProperties": {}
+        }
+      }
+    },
+    "required": [
+      "categories"
+    ],
+    "additionalProperties": {}
+  },
+  "category_response": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9A-F]{6}$"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "target",
+              "book-open",
+              "briefcase",
+              "dumbbell",
+              "coffee",
+              "user",
+              "graduation-cap",
+              "heart",
+              "home",
+              "moon",
+              "music",
+              "palette",
+              "plane",
+              "shopping-cart",
+              "users",
+              "wrench"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "focus",
+              "study",
+              "admin",
+              "exercise",
+              "rest",
+              "personal"
+            ]
+          },
+          "systemKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nameCustom": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "icon",
+          "kind",
+          "systemKey",
+          "nameCustom"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "required": [
+      "category"
+    ],
+    "additionalProperties": {}
+  }
+}

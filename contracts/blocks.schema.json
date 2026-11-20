@@ -103,6 +103,62 @@
             "type": "null"
           }
         ]
+      },
+      "categoryId": {
+        "default": null,
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "categoryKind": {
+        "default": null,
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "focus",
+              "study",
+              "admin",
+              "exercise",
+              "rest",
+              "personal"
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "recurringRuleId": {
+        "default": null,
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "originalDate": {
+        "default": null,
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "recurringEdited": {
+        "default": false,
+        "type": "boolean"
       }
     },
     "required": [
@@ -121,7 +177,12 @@
       "actualEndMin",
       "focusRating",
       "note",
-      "movedFromId"
+      "movedFromId",
+      "categoryId",
+      "categoryKind",
+      "recurringRuleId",
+      "originalDate",
+      "recurringEdited"
     ],
     "additionalProperties": {}
   },
@@ -232,6 +293,62 @@
                 "type": "null"
               }
             ]
+          },
+          "categoryId": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categoryKind": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "focus",
+                  "study",
+                  "admin",
+                  "exercise",
+                  "rest",
+                  "personal"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurringRuleId": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "originalDate": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurringEdited": {
+            "default": false,
+            "type": "boolean"
           }
         },
         "required": [
@@ -250,7 +367,12 @@
           "actualEndMin",
           "focusRating",
           "note",
-          "movedFromId"
+          "movedFromId",
+          "categoryId",
+          "categoryKind",
+          "recurringRuleId",
+          "originalDate",
+          "recurringEdited"
         ],
         "additionalProperties": {}
       }
@@ -369,6 +491,62 @@
                   "type": "null"
                 }
               ]
+            },
+            "categoryId": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "categoryKind": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "focus",
+                    "study",
+                    "admin",
+                    "exercise",
+                    "rest",
+                    "personal"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recurringRuleId": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "originalDate": {
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recurringEdited": {
+              "default": false,
+              "type": "boolean"
             }
           },
           "required": [
@@ -387,7 +565,12 @@
             "actualEndMin",
             "focusRating",
             "note",
-            "movedFromId"
+            "movedFromId",
+            "categoryId",
+            "categoryKind",
+            "recurringRuleId",
+            "originalDate",
+            "recurringEdited"
           ],
           "additionalProperties": {}
         }

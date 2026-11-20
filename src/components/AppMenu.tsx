@@ -7,11 +7,13 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ProfileModal } from '@/components/ProfileModal';
 import { ThemeSwitcher } from '@/theme/ThemeSwitcher';
 import { useI18n } from '@/i18n';
-import { getUser, isAuthenticated, isDemoMode, logout } from '@/lib/api';
+import { getUser, isAuthenticated, isDemoMode } from '@/lib/api';
+import { useSignOut } from '@/hooks/use-sign-out';
 
 /** Phone settings sheet: language, theme, profile and sign out (the sidebar holds these on desktop). */
 export function AppMenu() {
   const { t } = useI18n();
+  const { signOut, signOutDialog } = useSignOut();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -39,7 +41,7 @@ export function AppMenu() {
                 <User className="mr-2 h-4 w-4" />
                 <span className="truncate">{user?.name || t('menu.profile')}</span>
               </Button>
-              <Button variant="ghost" className="h-11 w-full justify-start text-muted-foreground" onClick={logout}>
+              <Button variant="ghost" className="h-11 w-full justify-start text-muted-foreground" onClick={() => { setOpen(false); signOut(); }}>
                 <LogOut className="mr-2 h-4 w-4" />
                 {t('nav.signOut')}
               </Button>
@@ -50,7 +52,7 @@ export function AppMenu() {
                 <LogIn className="mr-2 h-4 w-4" />
                 {t('nav.signInUp')}
               </Button>
-              <Button variant="ghost" className="h-11 w-full justify-start text-muted-foreground" onClick={logout}>
+              <Button variant="ghost" className="h-11 w-full justify-start text-muted-foreground" onClick={() => { setOpen(false); signOut(); }}>
                 <LogOut className="mr-2 h-4 w-4" />
                 {t('nav.exitDemo')}
               </Button>
@@ -59,6 +61,7 @@ export function AppMenu() {
         </SheetContent>
       </Sheet>
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      {signOutDialog}
     </>
   );
 }

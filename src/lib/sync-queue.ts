@@ -1,4 +1,5 @@
 import { ApiError } from './api';
+import { SYNC_QUEUE_KEY } from './device-data';
 
 /**
  * Offline queue for daily-loop writes (F1). Every queued request is replay-safe on the server
@@ -16,7 +17,7 @@ export interface QueuedRequest {
 
 export type Sender<T = unknown> = (request: QueuedRequest) => Promise<T>;
 
-const STORAGE_KEY = 'sync-queue';
+const STORAGE_KEY = SYNC_QUEUE_KEY;
 const listeners = new Set<() => void>();
 
 function read(): QueuedRequest[] {

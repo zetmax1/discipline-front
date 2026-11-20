@@ -18,11 +18,18 @@ describe('Block', () => {
   const block = {
     id: 1, name: 'A', category: 'study', date: '2026-10-29', startMin: 540, endMin: 1440, startTime: '09:00',
     endTime: '24:00', status: 'planned', distractions: 0, energy: 3, actualStartMin: null, actualEndMin: null,
-    focusRating: null, note: null, movedFromId: null,
+    focusRating: null, note: null, movedFromId: null, categoryId: 3, categoryKind: 'focus', recurringRuleId: null,
+    originalDate: null, recurringEdited: false,
   };
   it('accepts the lifecycle fields and rejects legacy statuses or minutes past 24:00', () => {
     expect(Block.parse(block).endMin).toBe(1440);
     expect(Block.safeParse({ ...block, status: 'pending' }).success).toBe(false);
     expect(Block.safeParse({ ...block, endMin: 1441 }).success).toBe(false);
+  });
+  it('reads a block from the previous API (no F13 fields), so a rollback of the API keeps the web working', () => {
+    const { categoryId: _c, categoryKind: _k, recurringRuleId: _r, originalDate: _o, recurringEdited: _e, ...previous } = block;
+    expect(Block.parse(previous)).toMatchObject({
+      categoryId: null, categoryKind: null, recurringRuleId: null, originalDate: null, recurringEdited: false,
+    });
   });
 });
