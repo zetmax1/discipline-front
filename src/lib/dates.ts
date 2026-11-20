@@ -9,6 +9,30 @@ export function localDateString(date: Date = new Date()): string {
   return format(date, 'yyyy-MM-dd');
 }
 
+/** Date and clock parts of `at` in an IANA zone; null when the zone is missing or unknown. */
+function zonedParts(at: Date, timeZone?: string) {
+  if (!timeZone) return null;
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(at);
+    const get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
+    return { date: `${get('year')}-${get('month')}-${get('day')}`, minute: Number(get('hour')) * 60 + Number(get('minute')) };
+  } catch {
+    return null; // RangeError: unknown zone
+  }
+}
+
+/** The calendar date of `at` in the user's IANA zone (VISION time rules); the device's when unknown. */
+export function zonedDateString(at: Date, timeZone?: string): string {
+  return zonedParts(at, timeZone)?.date ?? localDateString(at);
+}
+
+/** Minutes since midnight of `at` in the user's IANA zone; the device's when unknown. */
+export function zonedMinuteOfDay(at: Date, timeZone?: string): number {
+  return zonedParts(at, timeZone)?.minute ?? at.getHours() * 60 + at.getMinutes();
+}
+
 export interface WeekOption {
   weekStart: string; // Monday, yyyy-MM-dd
   label: string;

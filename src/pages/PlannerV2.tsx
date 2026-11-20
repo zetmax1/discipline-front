@@ -13,7 +13,8 @@ import { useCategories, useInvalidatePlanner, useRules, useWeek } from '@/hooks/
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useOnline } from '@/hooks/use-online';
 import { useI18n, type TKey } from '@/i18n';
-import { localDateString } from '@/lib/dates';
+import { zonedDateString, zonedMinuteOfDay } from '@/lib/dates';
+import { getUser } from '@/lib/api';
 import { addDays, clockLabel, dayLoad, mondayOf, parseDate, weekDates, PLAN_AHEAD_DAYS } from '@/lib/planner';
 import { placeAnyway, saveBlock, skipConflict } from '@/lib/planner-api';
 
@@ -28,9 +29,14 @@ function storedView(): View {
   }
 }
 
-function nowMinute() {
-  const d = new Date();
-  return d.getHours() * 60 + d.getMinutes();
+/** "Now" ticks every minute, so the today column and the now line follow midnight too. */
+function useNow() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+  return now;
 }
 
 /**
@@ -44,13 +50,16 @@ export default function PlannerV2() {
   const online = useOnline();
   const qc = useQueryClient();
   const invalidate = useInvalidatePlanner();
-  const today = localDateString();
+  // Today and now in the user's zone (the one the server plans in), not the device's (review M4).
+  const zone = getUser()?.timezone;
+  const now = useNow();
+  const today = zonedDateString(now, zone);
+  const nowMin = zonedMinuteOfDay(now, zone);
   const [view, setView] = useState<View>(storedView);
   const [selected, setSelected] = useState(today);
   const [form, setForm] = useState<FormTarget | null>(null);
   const [managing, setManaging] = useState(false);
   const [announcement, setAnnouncement] = useState('');
-  const [nowMin, setNowMin] = useState(nowMinute);
   const scroller = useRef<HTMLDivElement>(null);
 
   const monday = mondayOf(selected);
@@ -64,10 +73,6 @@ export default function PlannerV2() {
   useEffect(() => {
     try { localStorage.setItem(VIEW_KEY, view); } catch { /* per-device convenience only */ }
   }, [view]);
-  useEffect(() => {
-    const id = window.setInterval(() => setNowMin(nowMinute()), 60_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   const pxPerMin = isMobile ? 1.2 : 0.8;
   const days = view === 'week' && !isMobile ? weekDates(monday) : [selected];
@@ -87,7 +92,7 @@ export default function PlannerV2() {
   useLayoutEffect(() => {
     const el = scroller.current;
     if (!el) return;
-    const focus = days.includes(today) ? nowMinute() : 8 * 60;
+    const focus = days.includes(today) ? nowMin : 8 * 60;
     el.scrollTop = Math.max(0, focus * pxPerMin - 120);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, selected, isMobile, !!range]);

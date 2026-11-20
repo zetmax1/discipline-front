@@ -55,6 +55,21 @@ afterEach(() => {
 });
 
 describe('PlannerV2', () => {
+  it("takes today from the user's zone, not the device's (review M4)", async () => {
+    // 12:00 UTC on Sunday 8 Nov is already Monday 9 Nov, 02:00 in Kiritimati (UTC+14).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-08T12:00:00Z'));
+    try {
+      localStorage.setItem('auth_user', JSON.stringify({ id: 1, name: 'A', email: 'a@example.com', role: 'user', timezone: 'Pacific/Kiritimati' }));
+      const calls = mockApi();
+      renderPlanner();
+      await screen.findByText('Nothing planned yet');
+      expect(calls.find(c => c.startsWith('GET /tasks'))).toBe('GET /tasks?startDate=2026-11-09&endDate=2026-11-15');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('a new user sees the empty state, never an error, and reads the week as one range', async () => {
     const calls = mockApi();
     renderPlanner();
