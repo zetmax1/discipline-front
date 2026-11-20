@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import { mockApi } from './api-mock';
 import { screen } from './screens';
 import { expectNoSidewaysOverflow, expectTouchTargets } from './touch-targets';
@@ -9,6 +9,9 @@ import { expectNoSidewaysOverflow, expectTouchTargets } from './touch-targets';
  * block by drag (mouse) or long press (touch). The mocked API plans recurring blocks like the
  * server does (from today, skipping exceptions and clashes); the web never plans them itself.
  */
+
+// Native date inputs take typed digits in the locale's order: pinned, so the keyboard pass can type them.
+test.use({ locale: 'en-US' });
 
 const user = { id: 1, name: 'Test User', email: 'test@example.com', role: 'user', timezone: 'Asia/Tashkent' };
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -161,6 +164,79 @@ async function fillForm(page: Page, f: { name: string; category: string; date: s
   }
 }
 
+// --- Keyboard only: Tab, Shift+Tab, arrows, Space, Enter and typing; never a click, fill or focus(). ---
+
+/**
+ * Presses Tab (or Shift+Tab) until `target` has focus; inside a dialog, every stop must stay in it
+ * (focus trap). A native date input takes a Tab per date part before focus moves on.
+ */
+async function tabTo(page: Page, target: Locator, opts: { within?: Locator; max?: number; back?: boolean } = {}) {
+  for (let i = 0; i < (opts.max ?? 120); i++) {
+    if (await target.evaluate(el => el === document.activeElement)) return;
+    await page.keyboard.press(opts.back ? 'Shift+Tab' : 'Tab');
+    if (opts.within) expect(await opts.within.evaluate(d => d.contains(document.activeElement)), 'focus left the dialog').toBe(true);
+  }
+  throw new Error(`Tab never reached ${target}`);
+}
+
+/** Moves a focused <select> to the option labelled `label` with the arrow keys. */
+async function arrowTo(page: Page, select: Locator, label: string) {
+  await expect(select).toBeFocused();
+  const labels = await select.locator('option').allTextContents();
+  const want = labels.indexOf(label);
+  expect(want, `${label} is an option`).toBeGreaterThanOrEqual(0);
+  const now = await select.evaluate(s => (s as HTMLSelectElement).selectedIndex);
+  for (let i = 0; i < Math.abs(want - now); i++) await page.keyboard.press(want > now ? 'ArrowDown' : 'ArrowUp');
+  await expect(select.locator('option:checked')).toHaveText(label);
+}
+
+/** Types a YYYY-MM-DD date into the focused native date input (en-US: month, day, year). */
+async function typeDate(page: Page, input: Locator, date: string) {
+  await expect(input).toBeFocused();
+  expect(await input.inputValue(), 'type a date the field does not already hold').not.toBe(date);
+  const [y, m, d] = date.split('-');
+  await page.keyboard.type(`${m}${d}${y}`);
+  await expect(input).toHaveValue(date);
+}
+
+/** The block form, field by field in Tab order, then Save with Enter. */
+async function keyboardForm(page: Page, f: { name: string; category: string; date: string; start: string; end: string;
+  weekdays?: number[]; until?: string }) {
+  const dialog = page.getByRole('dialog');
+  const within = { within: dialog, max: 40 };
+  await expect(dialog.getByLabel('Task')).toBeFocused(); // the dialog opens on the first field
+  await page.keyboard.type(f.name);
+  await page.keyboard.press('Tab');
+  await arrowTo(page, dialog.getByLabel('Category'), f.category);
+  await page.keyboard.press('Tab');
+  await typeDate(page, dialog.getByLabel(f.weekdays ? 'From' : 'Date'), f.date);
+  await tabTo(page, dialog.getByLabel('Start'), within);
+  await arrowTo(page, dialog.getByLabel('Start'), f.start);
+  await page.keyboard.press('Tab');
+  await arrowTo(page, dialog.getByLabel('End'), f.end);
+  const repeat = dialog.getByRole('checkbox', { name: 'Repeat every week' });
+  await tabTo(page, repeat, within);
+  if (await repeat.isChecked() !== !!f.weekdays) await page.keyboard.press('Space');
+  if (f.weekdays) {
+    for (let d = 1; d <= 7; d++) {
+      const toggle = dialog.getByRole('button', { name: DAY_NAMES[d - 1], exact: true });
+      await tabTo(page, toggle, within);
+      if ((await toggle.getAttribute('aria-pressed') === 'true') !== f.weekdays.includes(d)) await page.keyboard.press('Space');
+      await expect(toggle).toHaveAttribute('aria-pressed', String(f.weekdays.includes(d)));
+    }
+    if (f.until) {
+      await tabTo(page, dialog.getByLabel('Until'), within);
+      await typeDate(page, dialog.getByLabel('Until'), f.until);
+    }
+  }
+  // Past Save, round the trap to the first field, and back to Save with Shift+Tab: focus never leaves the dialog.
+  const save = dialog.getByRole('button', { name: 'Save' });
+  await tabTo(page, save, within);
+  await tabTo(page, dialog.getByLabel('Task'), within);
+  await tabTo(page, save, { ...within, back: true });
+  await page.keyboard.press('Enter');
+}
+
 test('plans a timetable, gym 3×/week and four focus blocks in one pass', async ({ page }, info) => {
   const mobile = info.project.name === 'mobile-390';
   const errors: string[] = [];
@@ -176,21 +252,17 @@ test('plans a timetable, gym 3×/week and four focus blocks in one pass', async 
   await screen(page, info, 'f13-empty');
   await goToNextWeek(page, mobile);
 
-  // The timetable, by keyboard only: open the form with Enter and type into every field.
-  await page.getByRole('button', { name: 'Add a repeating block' }).first().focus();
-  await page.keyboard.press('Enter');
+  // The timetable by pointer or touch (the keyboard-only pass is its own test below).
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByLabel('Task')).toBeFocused();
-  await page.keyboard.type('Lectures');
+  await page.getByRole('button', { name: 'Add a repeating block' }).first().click();
   await fillForm(page, { name: 'Lectures', category: 'Study', date: nextMonday, start: '09:00', end: '12:00', weekdays: [1, 3, 5] });
-  await screen(page, info, 'f13-form-repeating');
-  await dialog.getByRole('button', { name: 'Save' }).focus();
-  await page.keyboard.press('Enter');
+  await dialog.getByRole('button', { name: 'Save' }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByTestId('planner-announcer')).toHaveText('Repeating block saved');
 
   await page.getByRole('button', { name: 'Add a repeating block' }).first().click();
   await fillForm(page, { name: 'Gym', category: 'Gym', date: nextMonday, start: '18:00', end: '19:30', weekdays: [1, 3, 5] });
+  await screen(page, info, 'f13-form-repeating');
   await dialog.getByRole('button', { name: 'Save' }).click();
   await expect(dialog).toBeHidden();
 
@@ -282,6 +354,38 @@ test('plans a timetable, gym 3×/week and four focus blocks in one pass', async 
   await expectNoSidewaysOverflow(page, 'on the planner');
   if (mobile) await expectTouchTargets(page, 'on the planner');
   expect(errors).toEqual([]);
+});
+
+test.describe('keyboard only', () => {
+  // Chromium ignores typed digits in a native date input while touch is emulated (the phone opens a
+  // picker instead), so this pass runs without touch, at both widths: a keyboard user at 390 px too.
+  test.use({ hasTouch: false });
+
+  test('a repeating block and a one-off block, every field by keys, dates typed', async ({ page }) => {
+    const state = await mockPlannerApi(page);
+    await signIn(page);
+    await openPlanner(page);
+    await expect(page.getByText('Nothing planned yet')).toBeVisible();
+    const dialog = page.getByRole('dialog');
+    // Dates outside the visible week, so none of them is the one the form opens with.
+    const from = addDays(today, 9), until = addDays(from, 7 * 12), oneOff = addDays(today, 10);
+
+    await tabTo(page, page.getByRole('button', { name: 'Add a repeating block' }).first());
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await keyboardForm(page, { name: 'Lectures', category: 'Study', date: from, start: '09:00', end: '10:30', weekdays: [2, 4], until });
+    await expect(dialog).toBeHidden();
+    await expect(page.getByTestId('planner-announcer')).toHaveText('Repeating block saved');
+    expect(state.rules.map(r => [r.name, r.categoryId, r.weekdays.join(''), r.startMin, r.endMin, r.validFrom, r.validTo]))
+      .toEqual([['Lectures', 2, '24', 540, 630, from, until]]);
+
+    await tabTo(page, page.getByRole('button', { name: 'Add a block' }).first());
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await keyboardForm(page, { name: 'Essay', category: 'Deep Work', date: oneOff, start: '14:00', end: '15:00' });
+    await expect(dialog).toBeHidden();
+    expect(state.blocks.map(b => [b.name, b.categoryId, b.date, b.startMin, b.endMin])).toEqual([['Essay', 1, oneOff, 840, 900]]);
+  });
 });
 
 test('offline: shows the last loaded week read-only and plans nothing', async ({ page, context }, info) => {

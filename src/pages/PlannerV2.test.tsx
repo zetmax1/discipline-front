@@ -114,7 +114,7 @@ describe('PlannerV2', () => {
     expect(options).toEqual(['Deep Work', 'Study', 'Workout', 'Reading']);
   });
 
-  it('the form alone creates a repeating block (keyboard path)', async () => {
+  it('the form alone creates a repeating block, without any gesture (the keyboard pass is in e2e/f13.spec.ts)', async () => {
     const calls = mockApi();
     vi.mocked(globalThis.fetch).mockImplementation(async (input, init) => {
       const url = new URL(String(input));
