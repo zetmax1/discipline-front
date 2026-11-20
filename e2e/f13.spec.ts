@@ -382,7 +382,9 @@ test('a clash: place anyway, or skip this week — quietly, never a miss', async
   const mobile = info.project.name === 'mobile-390';
   await goToNextWeek(page, mobile);
   await showDay(page, mobile, wed);
-  await expect(column(page, wed).getByText("Gym didn't fit — something else is planned then.")).toBeVisible();
+  const marker = column(page, wed).getByText("Gym didn't fit — something else is planned then.");
+  await expect(marker).toBeVisible();
+  await marker.scrollIntoViewIfNeeded();
   await screen(page, info, 'f13-conflict');
   await expect(page.locator('main')).not.toContainText(/missed|failed/i);
 
